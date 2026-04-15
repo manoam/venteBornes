@@ -61,6 +61,7 @@ export const referenceApi = {
   parcs: () => api.get("/reference/parcs").then((r) => r.data),
   pays: () => api.get("/reference/pays").then((r) => r.data),
   bornes: () => api.get("/reference/bornes").then((r) => r.data),
+  typesVentes: () => api.get("/reference/types-ventes").then((r) => r.data),
 };
 
 // ─── Dashboard ──────────────────────────────────────────────

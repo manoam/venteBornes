@@ -38,6 +38,10 @@ export default function VenteCreatePage() {
     queryKey: ["pays"],
     queryFn: referenceApi.pays,
   });
+  const { data: typesVentes } = useQuery({
+    queryKey: ["types-ventes"],
+    queryFn: referenceApi.typesVentes,
+  });
 
   const createMutation = useMutation({
     mutationFn: ventesApi.create,
@@ -111,6 +115,7 @@ export default function VenteCreatePage() {
             update={update}
             users={users ?? []}
             clients={clients?.data ?? []}
+            typesVentes={typesVentes ?? []}
           />
         )}
         {step === "materiel" && (
@@ -172,11 +177,13 @@ function StepClient({
   update,
   users,
   clients,
+  typesVentes,
 }: {
   form: Record<string, any>;
   update: (f: Record<string, any>) => void;
   users: any[];
   clients: any[];
+  typesVentes: any[];
 }) {
   return (
     <div className="space-y-6">
@@ -205,12 +212,17 @@ function StepClient({
           </label>
           <select
             value={form.typeVente ?? ""}
-            onChange={(e) => update({ typeVente: e.target.value })}
+            onChange={(e) => {
+              const code = e.target.value;
+              const type = typesVentes.find((t: any) => t.code === code);
+              update({ typeVente: code, typeVenteId: type?.id });
+            }}
             className="w-full border rounded-lg px-3 py-2"
           >
-            <option value="location">Location</option>
-            <option value="vente">Vente</option>
-            <option value="pret">Prêt</option>
+            <option value="">Sélectionner</option>
+            {typesVentes.map((t: any) => (
+              <option key={t.id} value={t.code}>{t.label}</option>
+            ))}
           </select>
         </div>
         <div>
