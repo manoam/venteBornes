@@ -246,22 +246,51 @@ function StepClient({
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Montant HT (€)
+            Nombre de mois
           </label>
           <input
             type="number"
-            value={form.facturationMontantHt ?? ""}
+            min="0"
+            value={form.nbMois ?? ""}
             onChange={(e) =>
               update({
-                facturationMontantHt: e.target.value
-                  ? Number(e.target.value)
+                nbMois: e.target.value ? Number(e.target.value) : undefined,
+              })
+            }
+            className="w-full border rounded-lg px-3 py-2"
+            placeholder="12"
+          />
+        </div>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Date début
+          </label>
+          <input
+            type="date"
+            value={form.contratDebut ? form.contratDebut.split("T")[0] : ""}
+            onChange={(e) =>
+              update({
+                contratDebut: e.target.value
+                  ? new Date(e.target.value).toISOString()
                   : undefined,
               })
             }
             className="w-full border rounded-lg px-3 py-2"
-            placeholder="0.00"
           />
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-6 pt-2">
+        <Checkbox
+          label="Convention de partenariat sous location"
+          checked={form.isSousLocation}
+          onChange={(v) => update({ isSousLocation: v })}
+        />
+        <Checkbox
+          label="Abonnement BO"
+          checked={form.isAbonnementBo}
+          onChange={(v) => update({ isAbonnementBo: v })}
+        />
       </div>
 
       {!form.clientId && (
@@ -486,16 +515,24 @@ function StepRecap({ form }: { form: Record<string, any> }) {
           </dl>
         </div>
         <div>
-          <h3 className="font-medium text-gray-700 mb-2">Facturation</h3>
+          <h3 className="font-medium text-gray-700 mb-2">Contrat</h3>
           <dl className="space-y-1 text-sm">
             <RecapRow
-              label="Montant HT"
+              label="Nombre de mois"
+              value={form.nbMois ? String(form.nbMois) : undefined}
+            />
+            <RecapRow
+              label="Date début"
               value={
-                form.facturationMontantHt
-                  ? `${form.facturationMontantHt} €`
+                form.contratDebut
+                  ? new Date(form.contratDebut).toLocaleDateString("fr-FR")
                   : undefined
               }
             />
+            {form.isSousLocation && (
+              <RecapRow label="Option" value="Convention partenariat sous-location" />
+            )}
+            {form.isAbonnementBo && <RecapRow label="Option" value="Abonnement BO" />}
           </dl>
         </div>
       </div>
