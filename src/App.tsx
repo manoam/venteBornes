@@ -5,6 +5,7 @@ import VenteDetailPage from "./pages/VenteDetailPage";
 import VenteCreatePage from "./pages/VenteCreatePage";
 import FacturationsPage from "./pages/FacturationsPage";
 import DashboardPage from "./pages/DashboardPage";
+import TypesVentesPage from "./pages/TypesVentesPage";
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <Route path="/ventes/:id" element={<VenteDetailPage />} />
         <Route path="/facturations" element={<FacturationsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/parametres/types-ventes" element={<TypesVentesPage />} />
       </Route>
     </Routes>
   );

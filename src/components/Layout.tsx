@@ -1,5 +1,13 @@
-import { Outlet, NavLink } from "react-router-dom";
-import { LayoutDashboard, ShoppingCart, Receipt } from "lucide-react";
+import { useState } from "react";
+import { Outlet, NavLink, useLocation } from "react-router-dom";
+import {
+  LayoutDashboard,
+  ShoppingCart,
+  Receipt,
+  Settings,
+  ChevronDown,
+  Tag,
+} from "lucide-react";
 import { clsx } from "clsx";
 
 const navItems = [
@@ -8,7 +16,15 @@ const navItems = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 ];
 
+const settingsItems = [
+  { to: "/parametres/types-ventes", label: "Types de vente", icon: Tag },
+];
+
 export default function Layout() {
+  const location = useLocation();
+  const isInSettings = location.pathname.startsWith("/parametres");
+  const [settingsOpen, setSettingsOpen] = useState(isInSettings);
+
   return (
     <div className="min-h-screen flex">
       {/* Sidebar */}
@@ -35,6 +51,48 @@ export default function Layout() {
               {label}
             </NavLink>
           ))}
+
+          {/* Menu Paramètres avec sous-menu */}
+          <button
+            onClick={() => setSettingsOpen((o) => !o)}
+            className={clsx(
+              "w-full flex items-center justify-between gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-colors",
+              isInSettings
+                ? "bg-gray-800 text-white"
+                : "text-gray-300 hover:bg-gray-800 hover:text-white"
+            )}
+          >
+            <span className="flex items-center gap-3">
+              <Settings size={20} />
+              Paramètres
+            </span>
+            <ChevronDown
+              size={16}
+              className={clsx("transition-transform", settingsOpen && "rotate-180")}
+            />
+          </button>
+
+          {settingsOpen && (
+            <div className="pl-4 space-y-1">
+              {settingsItems.map(({ to, label, icon: Icon }) => (
+                <NavLink
+                  key={to}
+                  to={to}
+                  className={({ isActive }) =>
+                    clsx(
+                      "flex items-center gap-3 px-4 py-2 rounded-lg text-sm transition-colors",
+                      isActive
+                        ? "bg-primary-600 text-white"
+                        : "text-gray-400 hover:bg-gray-800 hover:text-white"
+                    )
+                  }
+                >
+                  <Icon size={16} />
+                  {label}
+                </NavLink>
+              ))}
+            </div>
+          )}
         </nav>
       </aside>
 

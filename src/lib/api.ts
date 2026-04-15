@@ -64,6 +64,20 @@ export const referenceApi = {
   typesVentes: () => api.get("/reference/types-ventes").then((r) => r.data),
 };
 
+// ─── Paramètres / Admin ─────────────────────────────────────
+
+export const parametresApi = {
+  typesVentes: {
+    list: () => api.get("/parametres/types-ventes").then((r) => r.data),
+    create: (data: Record<string, unknown>) =>
+      api.post("/parametres/types-ventes", data).then((r) => r.data),
+    update: (id: number, data: Record<string, unknown>) =>
+      api.put(`/parametres/types-ventes/${id}`, data).then((r) => r.data),
+    delete: (id: number) =>
+      api.delete(`/parametres/types-ventes/${id}`).then((r) => r.data),
+  },
+};
+
 // ─── Dashboard ──────────────────────────────────────────────
 
 export const dashboardApi = {
