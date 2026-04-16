@@ -4,11 +4,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
 
-type Step = "client" | "materiel" | "consommables" | "livraison" | "recap";
+type Step = "client" | "materiel" | "consommables" | "configCrea" | "livraison" | "recap";
 const STEPS: { key: Step; label: string }[] = [
   { key: "client", label: "Client & Facturation" },
   { key: "materiel", label: "Matériel" },
   { key: "consommables", label: "Options & Consommables" },
+  { key: "configCrea", label: "Config Créa" },
   { key: "livraison", label: "Livraison" },
   { key: "recap", label: "Récapitulatif" },
 ];
@@ -137,6 +138,9 @@ export default function VenteCreatePage() {
             update={update}
             consommables={consommables ?? []}
           />
+        )}
+        {step === "configCrea" && (
+          <StepConfigCrea form={form} update={update} />
         )}
         {step === "livraison" && (
           <StepLivraison form={form} update={update} pays={pays ?? []} />
@@ -593,6 +597,94 @@ function ConsommableTypeRow({
   );
 }
 
+function StepConfigCrea({
+  form,
+  update,
+}: {
+  form: Record<string, any>;
+  update: (f: Record<string, any>) => void;
+}) {
+  const isDifferentContact = form.isContactCreaDifferent ?? false;
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-semibold">Config Créa</h2>
+
+      {/* Toggle contact différent */}
+      <Checkbox
+        label="Contact différent que le contact principal ?"
+        checked={isDifferentContact}
+        onChange={(v) => update({ isContactCreaDifferent: v })}
+      />
+
+      {/* Champs contact création */}
+      {isDifferentContact && (
+        <div className="border rounded-lg p-4 space-y-4 bg-gray-50">
+          <h3 className="text-md font-medium">Contact création</h3>
+          <div className="grid grid-cols-2 gap-4">
+            <Input
+              label="Nom du contact"
+              value={form.contactCreaFullname}
+              onChange={(v) => update({ contactCreaFullname: v })}
+            />
+            <Input
+              label="Prénom du contact"
+              value={form.contactCreaLastname}
+              onChange={(v) => update({ contactCreaLastname: v })}
+            />
+            <Input
+              label="Fonction dans l'entreprise"
+              value={form.contactCreaFonction}
+              onChange={(v) => update({ contactCreaFonction: v })}
+            />
+            <Input
+              label="Email"
+              value={form.contactCreaEmail}
+              onChange={(v) => update({ contactCreaEmail: v })}
+              type="email"
+            />
+            <Input
+              label="Tél. portable"
+              value={form.contactCreaTelMobile}
+              onChange={(v) => update({ contactCreaTelMobile: v })}
+            />
+            <Input
+              label="Tél. fixe"
+              value={form.contactCreaTelFixe}
+              onChange={(v) => update({ contactCreaTelFixe: v })}
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Commentaire optionnel
+            </label>
+            <textarea
+              value={form.contactCreaNote ?? ""}
+              onChange={(e) => update({ contactCreaNote: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2"
+              rows={3}
+            />
+          </div>
+        </div>
+      )}
+
+      {/* Note de configuration (toujours visible) */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Note de configuration
+        </label>
+        <textarea
+          value={form.configCreaNote ?? ""}
+          onChange={(e) => update({ configCreaNote: e.target.value })}
+          className="w-full border rounded-lg px-3 py-2"
+          rows={5}
+          placeholder="Notes de configuration pour la création..."
+        />
+      </div>
+    </div>
+  );
+}
+
 function StepLivraison({
   form,
   update,
@@ -750,6 +842,28 @@ function StepRecap({ form }: { form: Record<string, any> }) {
                 ))}
               {form.materielOtherNote && (
                 <RecapRow label="Notes" value={form.materielOtherNote} />
+              )}
+            </dl>
+          </div>
+        )}
+        {(form.isContactCreaDifferent || form.configCreaNote) && (
+          <div>
+            <h3 className="font-medium text-gray-700 mb-2">Config Créa</h3>
+            <dl className="space-y-1 text-sm">
+              {form.contactCreaFullname && (
+                <RecapRow
+                  label="Contact créa"
+                  value={`${form.contactCreaFullname ?? ""} ${form.contactCreaLastname ?? ""}`}
+                />
+              )}
+              {form.contactCreaEmail && (
+                <RecapRow label="Email créa" value={form.contactCreaEmail} />
+              )}
+              {form.contactCreaFonction && (
+                <RecapRow label="Fonction" value={form.contactCreaFonction} />
+              )}
+              {form.configCreaNote && (
+                <RecapRow label="Note config" value={form.configCreaNote} />
               )}
             </dl>
           </div>
