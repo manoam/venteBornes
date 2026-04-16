@@ -4,10 +4,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
 
-type Step = "client" | "materiel" | "livraison" | "recap";
+type Step = "client" | "materiel" | "consommables" | "livraison" | "recap";
 const STEPS: { key: Step; label: string }[] = [
   { key: "client", label: "Client & Facturation" },
   { key: "materiel", label: "Matériel" },
+  { key: "consommables", label: "Options & Consommables" },
   { key: "livraison", label: "Livraison" },
   { key: "recap", label: "Récapitulatif" },
 ];
@@ -37,6 +38,10 @@ export default function VenteCreatePage() {
   const { data: pays } = useQuery({
     queryKey: ["pays"],
     queryFn: referenceApi.pays,
+  });
+  const { data: consommables } = useQuery({
+    queryKey: ["consommables"],
+    queryFn: referenceApi.consommables,
   });
   const { data: typesVentes } = useQuery({
     queryKey: ["types-ventes"],
@@ -124,6 +129,13 @@ export default function VenteCreatePage() {
             update={update}
             gammes={gammes ?? []}
             couleurs={couleurs ?? []}
+          />
+        )}
+        {step === "consommables" && (
+          <StepConsommables
+            form={form}
+            update={update}
+            consommables={consommables ?? []}
           />
         )}
         {step === "livraison" && (
@@ -399,6 +411,188 @@ function StepMateriel({
   );
 }
 
+function StepConsommables({
+  form,
+  update,
+  consommables,
+}: {
+  form: Record<string, any>;
+  update: (f: Record<string, any>) => void;
+  consommables: any[];
+}) {
+  const isEnabled = form.isCartonBobine ?? false;
+
+  // Initialise la structure consommables si pas encore faite
+  const selectedConsommables: Record<
+    number,
+    { enabled: boolean; sousTypes: Record<number, number> }
+  > = form.consommablesSelection ?? {};
+
+  const updateSelection = (
+    typeId: number,
+    enabled: boolean,
+    sousTypes?: Record<number, number>
+  ) => {
+    const next = { ...selectedConsommables };
+    if (enabled) {
+      next[typeId] = {
+        enabled: true,
+        sousTypes: sousTypes ?? next[typeId]?.sousTypes ?? {},
+      };
+    } else {
+      next[typeId] = { enabled: false, sousTypes: {} };
+    }
+    update({ consommablesSelection: next });
+  };
+
+  const updateQty = (typeId: number, sousTypeId: number, qty: number) => {
+    const current = selectedConsommables[typeId] ?? {
+      enabled: true,
+      sousTypes: {},
+    };
+    const next = {
+      ...current,
+      sousTypes: { ...current.sousTypes, [sousTypeId]: qty },
+    };
+    updateSelection(typeId, true, next.sousTypes);
+  };
+
+  return (
+    <div className="space-y-6">
+      <h2 className="text-lg font-semibold">Options & Consommables</h2>
+
+      {/* Toggle principal */}
+      <Checkbox
+        label="Inclure des options complémentaires (consommables)"
+        checked={isEnabled}
+        onChange={(v) => update({ isCartonBobine: v })}
+      />
+
+      {/* Table consommables */}
+      {isEnabled && (
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b">
+              <tr>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase w-1/3">
+                  Type
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase w-1/3">
+                  Déclinaison
+                </th>
+                <th className="text-left px-4 py-2 text-xs font-medium text-gray-500 uppercase w-1/3">
+                  Quantité
+                </th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {consommables.length === 0 ? (
+                <tr>
+                  <td
+                    colSpan={3}
+                    className="px-4 py-8 text-center text-gray-500 text-sm"
+                  >
+                    Aucun consommable disponible
+                  </td>
+                </tr>
+              ) : (
+                consommables.map((type: any) => {
+                  const isTypeEnabled =
+                    selectedConsommables[type.id]?.enabled ?? false;
+                  return (
+                    <ConsommableTypeRow
+                      key={type.id}
+                      type={type}
+                      isEnabled={isTypeEnabled}
+                      sousTypesQty={
+                        selectedConsommables[type.id]?.sousTypes ?? {}
+                      }
+                      onToggle={(v) => updateSelection(type.id, v)}
+                      onQtyChange={(sousTypeId, qty) =>
+                        updateQty(type.id, sousTypeId, qty)
+                      }
+                    />
+                  );
+                })
+              )}
+            </tbody>
+          </table>
+        </div>
+      )}
+
+      {/* Note libre */}
+      <div>
+        <label className="block text-sm font-medium text-gray-700 mb-1">
+          Autre (notes complémentaires)
+        </label>
+        <textarea
+          value={form.materielOtherNote ?? ""}
+          onChange={(e) => update({ materielOtherNote: e.target.value })}
+          className="w-full border rounded-lg px-3 py-2"
+          rows={4}
+          placeholder="Notes supplémentaires..."
+        />
+      </div>
+    </div>
+  );
+}
+
+function ConsommableTypeRow({
+  type,
+  isEnabled,
+  sousTypesQty,
+  onToggle,
+  onQtyChange,
+}: {
+  type: any;
+  isEnabled: boolean;
+  sousTypesQty: Record<number, number>;
+  onToggle: (v: boolean) => void;
+  onQtyChange: (sousTypeId: number, qty: number) => void;
+}) {
+  return (
+    <>
+      {/* Ligne type (parent) */}
+      <tr className="bg-gray-50">
+        <td colSpan={3} className="px-4 py-2">
+          <label className="flex items-center gap-2 cursor-pointer">
+            <input
+              type="checkbox"
+              checked={isEnabled}
+              onChange={(e) => onToggle(e.target.checked)}
+              className="rounded border-gray-300"
+            />
+            <span className="font-medium text-sm">{type.nom}</span>
+          </label>
+        </td>
+      </tr>
+      {/* Lignes sous-types (enfants) */}
+      {isEnabled &&
+        (type.sousTypes ?? []).map((st: any) => (
+          <tr key={st.id} className="hover:bg-gray-50">
+            <td className="px-4 py-2" />
+            <td className="px-4 py-2 text-sm text-gray-700">{st.nom}</td>
+            <td className="px-4 py-2">
+              <input
+                type="number"
+                min="0"
+                value={sousTypesQty[st.id] ?? ""}
+                onChange={(e) =>
+                  onQtyChange(
+                    st.id,
+                    e.target.value ? Number(e.target.value) : 0
+                  )
+                }
+                className="w-24 border rounded px-2 py-1 text-sm"
+                placeholder="0"
+              />
+            </td>
+          </tr>
+        ))}
+    </>
+  );
+}
+
 function StepLivraison({
   form,
   update,
@@ -535,6 +729,31 @@ function StepRecap({ form }: { form: Record<string, any> }) {
             {form.isAbonnementBo && <RecapRow label="Option" value="Abonnement BO" />}
           </dl>
         </div>
+        {form.isCartonBobine && form.consommablesSelection && (
+          <div>
+            <h3 className="font-medium text-gray-700 mb-2">Consommables</h3>
+            <dl className="space-y-1 text-sm">
+              {Object.entries(form.consommablesSelection as Record<string, any>)
+                .filter(([, v]: [string, any]) => v.enabled)
+                .map(([typeId, v]: [string, any]) => (
+                  <div key={typeId}>
+                    {Object.entries(v.sousTypes as Record<string, number>)
+                      .filter(([, qty]) => qty > 0)
+                      .map(([stId, qty]) => (
+                        <RecapRow
+                          key={stId}
+                          label={`Sous-type #${stId}`}
+                          value={`x${qty}`}
+                        />
+                      ))}
+                  </div>
+                ))}
+              {form.materielOtherNote && (
+                <RecapRow label="Notes" value={form.materielOtherNote} />
+              )}
+            </dl>
+          </div>
+        )}
       </div>
     </div>
   );

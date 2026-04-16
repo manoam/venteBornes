@@ -8,6 +8,7 @@ import {
   ChevronDown,
   Tag,
   Layers,
+  Package,
 } from "lucide-react";
 import { clsx } from "clsx";
 
@@ -20,6 +21,7 @@ const navItems = [
 const settingsItems = [
   { to: "/parametres/types-ventes", label: "Types de vente", icon: Tag },
   { to: "/parametres/gammes", label: "Gammes", icon: Layers },
+  { to: "/parametres/modeles", label: "Modèles", icon: Package },
 ];
 
 export default function Layout() {
