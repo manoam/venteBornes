@@ -78,6 +78,32 @@ export const parametresApi = {
   },
 };
 
+// ─── Contrats ───────────────────────────────────────────────
+
+export const contratsApi = {
+  list: (params?: Record<string, string>) =>
+    api.get("/contrats", { params }).then((r) => r.data),
+
+  stats: () => api.get("/contrats/stats").then((r) => r.data),
+
+  get: (id: number) => api.get(`/contrats/${id}`).then((r) => r.data),
+
+  create: (data: Record<string, unknown>) =>
+    api.post("/contrats", data).then((r) => r.data),
+
+  update: (id: number, data: Record<string, unknown>) =>
+    api.put(`/contrats/${id}`, data).then((r) => r.data),
+
+  delete: (id: number) =>
+    api.delete(`/contrats/${id}`).then((r) => r.data),
+
+  addCommentaire: (contratId: number, data: { contenu: string; auteur?: string }) =>
+    api.post(`/contrats/${contratId}/commentaires`, data).then((r) => r.data),
+
+  deleteCommentaire: (contratId: number, id: number) =>
+    api.delete(`/contrats/${contratId}/commentaires/${id}`).then((r) => r.data),
+};
+
 // ─── Dashboard ──────────────────────────────────────────────
 
 export const dashboardApi = {

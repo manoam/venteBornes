@@ -8,6 +8,9 @@ import DashboardPage from "./pages/DashboardPage";
 import TypesVentesPage from "./pages/TypesVentesPage";
 import GammesPage from "./pages/GammesPage";
 import ModelesPage from "./pages/ModelesPage";
+import ContratsListPage from "./pages/ContratsListPage";
+import ContratDetailPage from "./pages/ContratDetailPage";
+import ContratCreatePage from "./pages/ContratCreatePage";
 
 export default function App() {
   return (
@@ -19,6 +22,9 @@ export default function App() {
         <Route path="/ventes/:id" element={<VenteDetailPage />} />
         <Route path="/facturations" element={<FacturationsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/contrats" element={<ContratsListPage />} />
+        <Route path="/contrats/nouveau" element={<ContratCreatePage />} />
+        <Route path="/contrats/:id" element={<ContratDetailPage />} />
         <Route path="/parametres/types-ventes" element={<TypesVentesPage />} />
         <Route path="/parametres/gammes" element={<GammesPage />} />
         <Route path="/parametres/modeles" element={<ModelesPage />} />
