@@ -43,6 +43,12 @@ export const clientsApi = {
 
   create: (data: Record<string, unknown>) =>
     api.post("/clients", data).then((r) => r.data),
+
+  searchCrm: (q: string) =>
+    api.get("/clients/search-crm", { params: { q } }).then((r) => r.data),
+
+  getFromCrm: (crmId: number) =>
+    api.get(`/clients/crm/${crmId}`).then((r) => r.data),
 };
 
 // ─── Users ──────────────────────────────────────────────────

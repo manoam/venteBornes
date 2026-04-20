@@ -2,7 +2,8 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
+import { ventesApi, usersApi, referenceApi } from "../lib/api";
+import ClientSearchCrm from "../components/ClientSearchCrm";
 
 type Step = "client" | "materiel" | "consommables" | "configCrea" | "livraison" | "recap";
 const STEPS: { key: Step; label: string }[] = [
@@ -24,10 +25,6 @@ export default function VenteCreatePage() {
   });
 
   const { data: users } = useQuery({ queryKey: ["users"], queryFn: usersApi.list });
-  const { data: clients } = useQuery({
-    queryKey: ["clients"],
-    queryFn: () => clientsApi.list(),
-  });
   const { data: gammes } = useQuery({
     queryKey: ["gammes"],
     queryFn: referenceApi.gammesBornes,
@@ -120,7 +117,6 @@ export default function VenteCreatePage() {
             form={form}
             update={update}
             users={users ?? []}
-            clients={clients?.data ?? []}
             typesVentes={typesVentes ?? []}
           />
         )}
@@ -192,13 +188,11 @@ function StepClient({
   form,
   update,
   users,
-  clients,
   typesVentes,
 }: {
   form: Record<string, any>;
   update: (f: Record<string, any>) => void;
   users: any[];
-  clients: any[];
   typesVentes: any[];
 }) {
   return (
@@ -241,24 +235,27 @@ function StepClient({
             ))}
           </select>
         </div>
-        <div>
+        <div className="col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client existant
+            Client (recherche CRM)
           </label>
-          <select
-            value={form.clientId ?? ""}
-            onChange={(e) =>
-              update({ clientId: e.target.value ? Number(e.target.value) : undefined })
+          <ClientSearchCrm
+            selectedLabel={form.crmClientLabel}
+            onSelect={(crmId, label) =>
+              update({
+                crmClientId: crmId,
+                crmClientLabel: label,
+                clientId: undefined,
+              })
             }
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">Nouveau client</option>
-            {clients.map((c: any) => (
-              <option key={c.id} value={c.id}>
-                {c.nom} {c.prenom ?? ""}
-              </option>
-            ))}
-          </select>
+            onClear={() =>
+              update({
+                crmClientId: undefined,
+                crmClientLabel: undefined,
+                clientId: undefined,
+              })
+            }
+          />
         </div>
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -309,7 +306,7 @@ function StepClient({
         />
       </div>
 
-      {!form.clientId && (
+      {!form.crmClientId && !form.clientId && (
         <>
           <h3 className="text-md font-medium mt-4">Nouveau client</h3>
           <div className="grid grid-cols-2 gap-4">
