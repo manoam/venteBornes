@@ -195,49 +195,141 @@ function StepClient({
   users: any[];
   typesVentes: any[];
 }) {
+  const isLocaFi =
+    form.typeVente === "location" ||
+    form.typeVente === "loca_fi" ||
+    form.typeVente?.includes("location");
+
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Informations client</h2>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Commercial *
-          </label>
-          <select
-            value={form.userId ?? ""}
-            onChange={(e) => update({ userId: Number(e.target.value) })}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">Sélectionner</option>
-            {users.map((u: any) => (
-              <option key={u.id} value={u.id}>
-                {u.prenom} {u.nom}
-              </option>
-            ))}
-          </select>
+    <div className="space-y-8">
+      {/* ── Section Vente ─────────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Vente</h2>
+        <div className="grid grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Commercial *
+            </label>
+            <select
+              value={form.userId ?? ""}
+              onChange={(e) => update({ userId: Number(e.target.value) })}
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="">Sélectionner</option>
+              {users.map((u: any) => (
+                <option key={u.id} value={u.id}>
+                  {u.prenom} {u.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Type de vente *
+            </label>
+            <select
+              value={form.typeVente ?? ""}
+              onChange={(e) => {
+                const code = e.target.value;
+                const type = typesVentes.find((t: any) => t.code === code);
+                update({ typeVente: code, typeVenteId: type?.id });
+              }}
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="">Sélectionner</option>
+              {typesVentes.map((t: any) => (
+                <option key={t.id} value={t.code}>
+                  {t.label}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Champs conditionnels — Location */}
+          {isLocaFi && (
+            <>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Nombre de mois
+                </label>
+                <input
+                  type="number"
+                  min="0"
+                  value={form.nbMois ?? ""}
+                  onChange={(e) =>
+                    update({
+                      nbMois: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                  placeholder="12"
+                />
+              </div>
+              <div />
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date début
+                </label>
+                <input
+                  type="date"
+                  value={
+                    form.contratDebut ? form.contratDebut.split("T")[0] : ""
+                  }
+                  onChange={(e) =>
+                    update({
+                      contratDebut: e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : undefined,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Date fin
+                </label>
+                <input
+                  type="date"
+                  value={form.contratFin ? form.contratFin.split("T")[0] : ""}
+                  onChange={(e) =>
+                    update({
+                      contratFin: e.target.value
+                        ? new Date(e.target.value).toISOString()
+                        : undefined,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                />
+              </div>
+            </>
+          )}
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Type de vente *
-          </label>
-          <select
-            value={form.typeVente ?? ""}
-            onChange={(e) => {
-              const code = e.target.value;
-              const type = typesVentes.find((t: any) => t.code === code);
-              update({ typeVente: code, typeVenteId: type?.id });
-            }}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">Sélectionner</option>
-            {typesVentes.map((t: any) => (
-              <option key={t.id} value={t.code}>{t.label}</option>
-            ))}
-          </select>
+
+        <div className="flex flex-wrap gap-6 pt-4">
+          <Checkbox
+            label="Convention de partenariat sous location"
+            checked={form.isSousLocation}
+            onChange={(v) => update({ isSousLocation: v })}
+          />
+          <Checkbox
+            label="Abonnement BO"
+            checked={form.isAbonnementBo}
+            onChange={(v) => update({ isAbonnementBo: v })}
+          />
         </div>
-        <div className="col-span-2">
+      </div>
+
+      {/* ── Section Client ────────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Client</h2>
+
+        {/* Recherche CRM */}
+        <div className="mb-4">
           <label className="block text-sm font-medium text-gray-700 mb-1">
-            Client (recherche CRM)
+            Rechercher un client *
           </label>
           <ClientSearchCrm
             selectedLabel={form.crmClientLabel}
@@ -257,69 +349,185 @@ function StepClient({
             }
           />
         </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Nombre de mois
-          </label>
-          <input
-            type="number"
-            min="0"
-            value={form.nbMois ?? ""}
-            onChange={(e) =>
-              update({
-                nbMois: e.target.value ? Number(e.target.value) : undefined,
-              })
-            }
-            className="w-full border rounded-lg px-3 py-2"
-            placeholder="12"
-          />
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Date début
-          </label>
-          <input
-            type="date"
-            value={form.contratDebut ? form.contratDebut.split("T")[0] : ""}
-            onChange={(e) =>
-              update({
-                contratDebut: e.target.value
-                  ? new Date(e.target.value).toISOString()
-                  : undefined,
-              })
-            }
-            className="w-full border rounded-lg px-3 py-2"
-          />
-        </div>
-      </div>
 
-      <div className="flex flex-wrap gap-6 pt-2">
-        <Checkbox
-          label="Convention de partenariat sous location"
-          checked={form.isSousLocation}
-          onChange={(v) => update({ isSousLocation: v })}
-        />
-        <Checkbox
-          label="Abonnement BO"
-          checked={form.isAbonnementBo}
-          onChange={(v) => update({ isAbonnementBo: v })}
-        />
-      </div>
+        {/* Nouveau client (si pas de client CRM sélectionné) */}
+        {!form.crmClientId && !form.clientId && (
+          <div className="border rounded-lg p-4 bg-gray-50 space-y-4">
+            <h3 className="text-md font-medium">Nouveau client</h3>
 
-      {!form.crmClientId && !form.clientId && (
-        <>
-          <h3 className="text-md font-medium mt-4">Nouveau client</h3>
-          <div className="grid grid-cols-2 gap-4">
-            <Input label="Nom" value={form.clientNom} onChange={(v) => update({ clientNom: v })} />
-            <Input label="Prénom" value={form.clientPrenom} onChange={(v) => update({ clientPrenom: v })} />
-            <Input label="Email" value={form.clientEmail} onChange={(v) => update({ clientEmail: v })} type="email" />
-            <Input label="Téléphone" value={form.clientTelephone} onChange={(v) => update({ clientTelephone: v })} />
-            <Input label="Adresse" value={form.clientAdresse} onChange={(v) => update({ clientAdresse: v })} />
-            <Input label="Ville" value={form.clientVille} onChange={(v) => update({ clientVille: v })} />
-            <Input label="Code postal" value={form.clientCp} onChange={(v) => update({ clientCp: v })} />
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Genre
+                </label>
+                <select
+                  value={form.clientType ?? "corporation"}
+                  onChange={(e) => update({ clientType: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="corporation">Société</option>
+                  <option value="particulier">Particulier</option>
+                </select>
+              </div>
+              <div />
+
+              <Input
+                label="Raison sociale *"
+                value={form.clientNom}
+                onChange={(v) => update({ clientNom: v })}
+              />
+              <Input
+                label="Enseigne"
+                value={form.clientEnseigne}
+                onChange={(v) => update({ clientEnseigne: v })}
+              />
+              <Input
+                label="Adresse"
+                value={form.clientAdresse}
+                onChange={(v) => update({ clientAdresse: v })}
+              />
+              <Input
+                label="Adresse complémentaire"
+                value={form.clientAdresse2}
+                onChange={(v) => update({ clientAdresse2: v })}
+              />
+              <Input
+                label="Code postal"
+                value={form.clientCp}
+                onChange={(v) => update({ clientCp: v })}
+              />
+              <Input
+                label="Ville"
+                value={form.clientVille}
+                onChange={(v) => update({ clientVille: v })}
+              />
+              <Input
+                label="Pays"
+                value={form.clientPays}
+                onChange={(v) => update({ clientPays: v })}
+              />
+              <div />
+
+              <Input
+                label="Tél entreprise"
+                value={form.clientTelephone}
+                onChange={(v) => update({ clientTelephone: v })}
+              />
+              <Input
+                label="2ème téléphone"
+                value={form.clientTelephone2}
+                onChange={(v) => update({ clientTelephone2: v })}
+              />
+              <Input
+                label="Email général"
+                value={form.clientEmail}
+                onChange={(v) => update({ clientEmail: v })}
+                type="email"
+              />
+              <div />
+
+              <Input
+                label="TVA Intracommunautaire"
+                value={form.clientTvaIntra}
+                onChange={(v) => update({ clientTvaIntra: v })}
+              />
+              <Input
+                label="Siren"
+                value={form.clientSiren}
+                onChange={(v) => update({ clientSiren: v })}
+              />
+              <Input
+                label="Siret"
+                value={form.clientSiret}
+                onChange={(v) => update({ clientSiret: v })}
+              />
+            </div>
+
+            {/* Agence */}
+            <Checkbox
+              label="Est une agence"
+              checked={form.isAgence}
+              onChange={(v) => update({ isAgence: v })}
+            />
+            {form.isAgence && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pour le compte de qui ? *
+                </label>
+                <textarea
+                  value={form.proprietaire ?? ""}
+                  onChange={(e) => update({ proprietaire: e.target.value })}
+                  className="w-full border rounded-lg px-3 py-2"
+                  rows={2}
+                />
+              </div>
+            )}
+
+            {/* Groupe client */}
+            <Checkbox
+              label="Appartient à un groupe de client"
+              checked={form.isClientBelongsToGroup}
+              onChange={(v) => update({ isClientBelongsToGroup: v })}
+            />
+            {form.isClientBelongsToGroup && (
+              <Input
+                label="Nom du groupe"
+                value={form.groupeClientNom}
+                onChange={(v) => update({ groupeClientNom: v })}
+              />
+            )}
           </div>
-        </>
-      )}
+        )}
+      </div>
+
+      {/* ── Section Devis (upload) ────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Documents devis</h2>
+        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+          <input
+            type="file"
+            multiple
+            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
+            onChange={(e) => {
+              const files = Array.from(e.target.files ?? []);
+              update({ devisFiles: [...(form.devisFiles ?? []), ...files] });
+            }}
+            className="hidden"
+            id="devis-upload"
+          />
+          <label
+            htmlFor="devis-upload"
+            className="cursor-pointer text-primary-600 hover:text-primary-800 font-medium"
+          >
+            Cliquez pour ajouter des fichiers
+          </label>
+          <p className="text-xs text-gray-400 mt-1">
+            PDF, DOC, DOCX, PNG, JPG (max 100 fichiers)
+          </p>
+          {form.devisFiles?.length > 0 && (
+            <div className="mt-3 space-y-1">
+              {form.devisFiles.map((f: File, i: number) => (
+                <div
+                  key={i}
+                  className="flex items-center justify-between bg-gray-50 rounded px-3 py-1 text-sm"
+                >
+                  <span className="truncate">{f.name}</span>
+                  <button
+                    onClick={() => {
+                      const files = [...form.devisFiles];
+                      files.splice(i, 1);
+                      update({ devisFiles: files });
+                    }}
+                    className="text-red-500 hover:text-red-700 ml-2 text-xs"
+                  >
+                    Supprimer
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -771,35 +979,11 @@ function StepRecap({ form }: { form: Record<string, any> }) {
     <div className="space-y-6">
       <h2 className="text-lg font-semibold">Récapitulatif</h2>
       <div className="grid grid-cols-2 gap-6">
+        {/* Vente */}
         <div>
-          <h3 className="font-medium text-gray-700 mb-2">Client</h3>
+          <h3 className="font-medium text-gray-700 mb-2">Vente</h3>
           <dl className="space-y-1 text-sm">
-            <RecapRow label="Nom" value={form.clientNom} />
-            <RecapRow label="Email" value={form.clientEmail} />
-            <RecapRow label="Téléphone" value={form.clientTelephone} />
-            <RecapRow label="Ville" value={form.clientVille} />
-          </dl>
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Matériel</h3>
-          <dl className="space-y-1 text-sm">
-            <RecapRow label="Type" value={form.typeVente} />
-            <RecapRow label="Logiciel" value={form.logiciel} />
-            {form.isMarqueBlanche && <RecapRow label="Option" value="Marque blanche" />}
-            {form.isCustomGravure && <RecapRow label="Option" value="Gravure personnalisée" />}
-          </dl>
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Livraison</h3>
-          <dl className="space-y-1 text-sm">
-            <RecapRow label="Adresse" value={form.livraisonAdresse} />
-            <RecapRow label="Ville" value={form.livraisonVille} />
-            <RecapRow label="Contact" value={form.livraisonContactFullname} />
-          </dl>
-        </div>
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Contrat</h3>
-          <dl className="space-y-1 text-sm">
+            <RecapRow label="Type de vente" value={form.typeVente} />
             <RecapRow
               label="Nombre de mois"
               value={form.nbMois ? String(form.nbMois) : undefined}
@@ -812,10 +996,63 @@ function StepRecap({ form }: { form: Record<string, any> }) {
                   : undefined
               }
             />
+            <RecapRow
+              label="Date fin"
+              value={
+                form.contratFin
+                  ? new Date(form.contratFin).toLocaleDateString("fr-FR")
+                  : undefined
+              }
+            />
             {form.isSousLocation && (
               <RecapRow label="Option" value="Convention partenariat sous-location" />
             )}
             {form.isAbonnementBo && <RecapRow label="Option" value="Abonnement BO" />}
+          </dl>
+        </div>
+
+        {/* Client */}
+        <div>
+          <h3 className="font-medium text-gray-700 mb-2">Client</h3>
+          <dl className="space-y-1 text-sm">
+            {form.crmClientLabel ? (
+              <RecapRow label="Client CRM" value={form.crmClientLabel} />
+            ) : (
+              <>
+                <RecapRow label="Genre" value={form.clientType === "particulier" ? "Particulier" : "Société"} />
+                <RecapRow label="Raison sociale" value={form.clientNom} />
+                <RecapRow label="Enseigne" value={form.clientEnseigne} />
+                <RecapRow label="Adresse" value={form.clientAdresse} />
+                <RecapRow label="CP / Ville" value={[form.clientCp, form.clientVille].filter(Boolean).join(" ")} />
+                <RecapRow label="Pays" value={form.clientPays} />
+                <RecapRow label="Email" value={form.clientEmail} />
+                <RecapRow label="Tél" value={form.clientTelephone} />
+                <RecapRow label="Siren" value={form.clientSiren} />
+                <RecapRow label="Siret" value={form.clientSiret} />
+                <RecapRow label="TVA Intra" value={form.clientTvaIntra} />
+              </>
+            )}
+            {form.isAgence && <RecapRow label="Agence pour" value={form.proprietaire} />}
+          </dl>
+        </div>
+
+        {/* Matériel */}
+        <div>
+          <h3 className="font-medium text-gray-700 mb-2">Matériel</h3>
+          <dl className="space-y-1 text-sm">
+            <RecapRow label="Logiciel" value={form.logiciel} />
+            {form.isMarqueBlanche && <RecapRow label="Option" value="Marque blanche" />}
+            {form.isCustomGravure && <RecapRow label="Option" value="Gravure personnalisée" />}
+          </dl>
+        </div>
+
+        {/* Livraison */}
+        <div>
+          <h3 className="font-medium text-gray-700 mb-2">Livraison</h3>
+          <dl className="space-y-1 text-sm">
+            <RecapRow label="Adresse" value={form.livraisonAdresse} />
+            <RecapRow label="Ville" value={form.livraisonVille} />
+            <RecapRow label="Contact" value={form.livraisonContactFullname} />
           </dl>
         </div>
         {form.isCartonBobine && form.consommablesSelection && (
