@@ -11,6 +11,7 @@ import ModelesPage from "./pages/ModelesPage";
 import ContratsListPage from "./pages/ContratsListPage";
 import ContratDetailPage from "./pages/ContratDetailPage";
 import ContratCreatePage from "./pages/ContratCreatePage";
+import SyncPage from "./pages/SyncPage";
 
 export default function App() {
   return (
@@ -28,6 +29,7 @@ export default function App() {
         <Route path="/parametres/types-ventes" element={<TypesVentesPage />} />
         <Route path="/parametres/gammes" element={<GammesPage />} />
         <Route path="/parametres/modeles" element={<ModelesPage />} />
+        <Route path="/parametres/sync" element={<SyncPage />} />
       </Route>
     </Routes>
   );
