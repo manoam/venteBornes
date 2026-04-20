@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
-import { ventesApi, usersApi, referenceApi } from "../lib/api";
+import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
 import ClientSearchCrm from "../components/ClientSearchCrm";
 
 type Step = "client" | "materiel" | "consommables" | "configCrea" | "livraison" | "recap";
@@ -333,22 +333,84 @@ function StepClient({
           </label>
           <ClientSearchCrm
             selectedLabel={form.crmClientLabel}
-            onSelect={(crmId, label) =>
+            onSelect={async (crmId, label) => {
               update({
                 crmClientId: crmId,
                 crmClientLabel: label,
                 clientId: undefined,
-              })
-            }
+                crmClientLoading: true,
+              });
+              // Fetch les détails du client depuis le CRM
+              try {
+                const client = await clientsApi.getFromCrm(crmId);
+                update({
+                  crmClientLoading: false,
+                  clientNom: client.nom ?? "",
+                  clientPrenom: client.prenom ?? "",
+                  clientEmail: client.email ?? "",
+                  clientTelephone: client.telephone ?? "",
+                  clientAdresse: client.adresse ?? "",
+                  clientVille: client.ville ?? "",
+                  clientCp: client.codePostal ?? "",
+                  clientPays: client.pays ?? "France",
+                });
+              } catch {
+                update({ crmClientLoading: false });
+              }
+            }}
             onClear={() =>
               update({
                 crmClientId: undefined,
                 crmClientLabel: undefined,
+                crmClientLoading: false,
                 clientId: undefined,
+                clientNom: undefined,
+                clientPrenom: undefined,
+                clientEmail: undefined,
+                clientTelephone: undefined,
+                clientAdresse: undefined,
+                clientVille: undefined,
+                clientCp: undefined,
+                clientPays: undefined,
+                clientEnseigne: undefined,
+                clientTelephone2: undefined,
+                clientTvaIntra: undefined,
+                clientSiren: undefined,
+                clientSiret: undefined,
               })
             }
           />
         </div>
+
+        {/* Chargement client CRM */}
+        {form.crmClientLoading && (
+          <div className="text-sm text-gray-500 py-4 text-center">
+            Chargement des informations client...
+          </div>
+        )}
+
+        {/* Infos client CRM (lecture seule) */}
+        {form.crmClientId && !form.crmClientLoading && (
+          <div className="border rounded-lg p-4 bg-blue-50 space-y-4">
+            <h3 className="text-md font-medium text-blue-800">
+              Infos client (depuis le CRM)
+            </h3>
+            <div className="grid grid-cols-2 gap-4">
+              <ReadonlyField label="Raison sociale" value={form.clientNom} />
+              <ReadonlyField label="Prénom" value={form.clientPrenom} />
+              <ReadonlyField label="Email" value={form.clientEmail} />
+              <ReadonlyField label="Téléphone" value={form.clientTelephone} />
+              <ReadonlyField label="Adresse" value={form.clientAdresse} />
+              <ReadonlyField
+                label="CP / Ville"
+                value={[form.clientCp, form.clientVille]
+                  .filter(Boolean)
+                  .join(" ")}
+              />
+              <ReadonlyField label="Pays" value={form.clientPays} />
+            </div>
+          </div>
+        )}
 
         {/* Nouveau client (si pas de client CRM sélectionné) */}
         {!form.crmClientId && !form.clientId && (
@@ -1429,6 +1491,25 @@ function Checkbox({
       />
       <span className="text-sm">{label}</span>
     </label>
+  );
+}
+
+function ReadonlyField({
+  label,
+  value,
+}: {
+  label: string;
+  value?: string | null;
+}) {
+  return (
+    <div>
+      <label className="block text-xs font-medium text-blue-600 mb-1">
+        {label}
+      </label>
+      <div className="text-sm font-medium text-gray-900 bg-white border border-blue-200 rounded-lg px-3 py-2">
+        {value || "—"}
+      </div>
+    </div>
   );
 }
 
