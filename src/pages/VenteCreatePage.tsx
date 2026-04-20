@@ -216,7 +216,7 @@ function StepClient({
               <option value="">Sélectionner</option>
               {users.map((u: any) => (
                 <option key={u.id} value={u.id}>
-                  {u.prenom} {u.nom}
+                  {u.prenom ? `${u.prenom} ${u.nom}` : u.nom}
                 </option>
               ))}
             </select>
