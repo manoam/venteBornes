@@ -18,6 +18,7 @@ interface SyncState {
 const TABLES = [
   { key: "gammes", label: "Gammes de bornes", fn: syncApi.gammes },
   { key: "modeles", label: "Modèles de bornes", fn: syncApi.modeles },
+  { key: "couleurs", label: "Couleurs", fn: syncApi.couleurs },
   { key: "users", label: "Commerciaux", fn: syncApi.users },
 ] as const;
 

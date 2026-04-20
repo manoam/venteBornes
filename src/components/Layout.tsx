@@ -10,6 +10,7 @@ import {
   Tag,
   Layers,
   Package,
+  Palette,
   RefreshCw,
 } from "lucide-react";
 import { clsx } from "clsx";
@@ -25,6 +26,7 @@ const settingsItems = [
   { to: "/parametres/types-ventes", label: "Types de vente", icon: Tag },
   { to: "/parametres/gammes", label: "Gammes", icon: Layers },
   { to: "/parametres/modeles", label: "Modèles", icon: Package },
+  { to: "/parametres/couleurs", label: "Couleurs", icon: Palette },
   { to: "/parametres/sync", label: "Synchronisation CRM", icon: RefreshCw },
 ];
 
