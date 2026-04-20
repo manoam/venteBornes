@@ -195,10 +195,8 @@ function StepClient({
   users: any[];
   typesVentes: any[];
 }) {
-  const isLocaFi =
-    form.typeVente === "location" ||
-    form.typeVente === "loca_fi" ||
-    form.typeVente?.includes("location");
+  const tv = (form.typeVente ?? "").toLowerCase();
+  const isLocaFi = tv !== "" && !tv.includes("achat");
 
   return (
     <div className="space-y-8">
