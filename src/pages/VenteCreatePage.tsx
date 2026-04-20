@@ -546,75 +546,169 @@ function StepMateriel({
   const selectedGamme = gammes.find((g: any) => g.id === form.gammeBorneId);
 
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Équipement</h2>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Gamme</label>
-          <select
-            value={form.gammeBorneId ?? ""}
-            onChange={(e) =>
-              update({
-                gammeBorneId: e.target.value ? Number(e.target.value) : undefined,
-                modelBorneId: undefined,
-              })
-            }
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">Sélectionner</option>
-            {gammes.map((g: any) => (
-              <option key={g.id} value={g.id}>{g.nom}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Modèle</label>
-          <select
-            value={form.modelBorneId ?? ""}
-            onChange={(e) =>
-              update({ modelBorneId: e.target.value ? Number(e.target.value) : undefined })
-            }
-            className="w-full border rounded-lg px-3 py-2"
-            disabled={!selectedGamme}
-          >
-            <option value="">Sélectionner</option>
-            {selectedGamme?.models?.map((m: any) => (
-              <option key={m.id} value={m.id}>{m.nom}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Couleur</label>
-          <select
-            value={form.couleurBorneId ?? ""}
-            onChange={(e) =>
-              update({ couleurBorneId: e.target.value ? Number(e.target.value) : undefined })
-            }
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">Sélectionner</option>
-            {couleurs.map((c: any) => (
-              <option key={c.id} value={c.id}>{c.nom}</option>
-            ))}
-          </select>
-        </div>
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Logiciel</label>
-          <input
-            value={form.logiciel ?? ""}
-            onChange={(e) => update({ logiciel: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2"
-          />
+    <div className="space-y-8">
+      {/* ── Descriptif borne ──────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Descriptif borne</h2>
+        <div className="grid grid-cols-3 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Gamme
+            </label>
+            <select
+              value={form.gammeBorneId ?? ""}
+              onChange={(e) =>
+                update({
+                  gammeBorneId: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                  modelBorneId: undefined,
+                })
+              }
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="">Sélectionner</option>
+              {gammes.map((g: any) => (
+                <option key={g.id} value={g.id}>
+                  {g.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Type (Modèle)
+            </label>
+            <select
+              value={form.modelBorneId ?? ""}
+              onChange={(e) =>
+                update({
+                  modelBorneId: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                })
+              }
+              className="w-full border rounded-lg px-3 py-2"
+              disabled={!selectedGamme}
+            >
+              <option value="">
+                {selectedGamme
+                  ? "Sélectionner"
+                  : "Sélectionner en fonction de la gamme"}
+              </option>
+              {selectedGamme?.models?.map((m: any) => (
+                <option key={m.id} value={m.id}>
+                  {m.nom}
+                </option>
+              ))}
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Couleur
+            </label>
+            <select
+              value={form.couleurBorneId ?? ""}
+              onChange={(e) =>
+                update({
+                  couleurBorneId: e.target.value
+                    ? Number(e.target.value)
+                    : undefined,
+                })
+              }
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="">Sélectionner</option>
+              {couleurs.map((c: any) => (
+                <option key={c.id} value={c.id}>
+                  {c.nom}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
-      <h3 className="text-md font-medium">Options</h3>
-      <div className="flex flex-wrap gap-4">
-        <Checkbox label="Marque blanche" checked={form.isMarqueBlanche} onChange={(v) => update({ isMarqueBlanche: v })} />
-        <Checkbox label="Gravure personnalisée" checked={form.isCustomGravure} onChange={(v) => update({ isCustomGravure: v })} />
-        <Checkbox label="Valise transport" checked={form.isValiseTransport} onChange={(v) => update({ isValiseTransport: v })} />
-        <Checkbox label="Housse protection" checked={form.isHousseProtection} onChange={(v) => update({ isHousseProtection: v })} />
-        <Checkbox label="Sans imprimante" checked={form.isWithoutImprimante} onChange={(v) => update({ isWithoutImprimante: v })} />
+      {/* ── Options borne ─────────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Options borne</h2>
+        <div className="grid grid-cols-2 gap-4 mb-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Marque blanche
+            </label>
+            <select
+              value={form.isMarqueBlanche ? "1" : "0"}
+              onChange={(e) =>
+                update({ isMarqueBlanche: e.target.value === "1" })
+              }
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="0">Non</option>
+              <option value="1">Oui</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Logiciel
+            </label>
+            <input
+              value={form.logiciel ?? ""}
+              onChange={(e) => update({ logiciel: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2"
+            />
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          <Checkbox
+            label="Gravure personnalisée"
+            checked={form.isCustomGravure}
+            onChange={(v) => update({ isCustomGravure: v })}
+          />
+          {form.isCustomGravure && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Note sur la gravure
+              </label>
+              <textarea
+                value={form.gravureNote ?? ""}
+                onChange={(e) => update({ gravureNote: e.target.value })}
+                className="w-full border rounded-lg px-3 py-2"
+                rows={3}
+              />
+            </div>
+          )}
+
+          <Checkbox
+            label="Valise transport"
+            checked={form.isValiseTransport}
+            onChange={(v) => update({ isValiseTransport: v })}
+          />
+          <Checkbox
+            label="Housse protection"
+            checked={form.isHousseProtection}
+            onChange={(v) => update({ isHousseProtection: v })}
+          />
+          <Checkbox
+            label="Sans imprimante"
+            checked={form.isWithoutImprimante}
+            onChange={(v) => update({ isWithoutImprimante: v })}
+          />
+        </div>
+
+        {/* Infos supplémentaires */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Informations supplémentaires
+          </label>
+          <textarea
+            value={form.materielNote ?? ""}
+            onChange={(e) => update({ materielNote: e.target.value })}
+            className="w-full border rounded-lg px-3 py-2"
+            rows={3}
+          />
+        </div>
       </div>
     </div>
   );
@@ -900,75 +994,210 @@ function StepLivraison({
   pays: any[];
 }) {
   return (
-    <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Livraison</h2>
-      <div className="grid grid-cols-2 gap-4">
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">
-            Type de date
-          </label>
-          <select
-            value={form.livraisonTypeDate ?? "EN_ATTENTE"}
-            onChange={(e) => update({ livraisonTypeDate: e.target.value })}
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="EN_ATTENTE">En attente</option>
-            <option value="AUSSITOT">Dès que possible</option>
-            <option value="CLIENT">À définir avec le client</option>
-            <option value="PRECIS">Date précise</option>
-          </select>
+    <div className="space-y-8">
+      {/* ── Contact livraison ─────────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Contact livraison</h2>
+
+        <Checkbox
+          label="Livraison pour un contact différent"
+          checked={form.isLivraisonDifferent}
+          onChange={(v) => update({ isLivraisonDifferent: v })}
+        />
+
+        {form.isLivraisonDifferent && (
+          <div className="border rounded-lg p-4 bg-gray-50 mt-4 space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <Input
+                label="Nom contact"
+                value={form.livraisonContactFullname}
+                onChange={(v) => update({ livraisonContactFullname: v })}
+              />
+              <Input
+                label="Prénom du contact"
+                value={form.livraisonContactLastname}
+                onChange={(v) => update({ livraisonContactLastname: v })}
+              />
+              <Input
+                label="Fonction dans l'entreprise"
+                value={form.livraisonContactFonction}
+                onChange={(v) => update({ livraisonContactFonction: v })}
+              />
+              <Input
+                label="Email"
+                value={form.livraisonContactEmail}
+                onChange={(v) => update({ livraisonContactEmail: v })}
+                type="email"
+              />
+              <Input
+                label="Tél. portable"
+                value={form.livraisonContactTelMobile}
+                onChange={(v) => update({ livraisonContactTelMobile: v })}
+              />
+              <Input
+                label="Tél. fixe"
+                value={form.livraisonContactTelFixe}
+                onChange={(v) => update({ livraisonContactTelFixe: v })}
+              />
+            </div>
+          </div>
+        )}
+
+        {/* Adresse différente */}
+        <div className="mt-4">
+          <Checkbox
+            label="Livraison dans un lieu différent"
+            checked={form.isLivraisonAdresseDiff}
+            onChange={(v) => update({ isLivraisonAdresseDiff: v })}
+          />
         </div>
-        {form.livraisonTypeDate === "PRECIS" && (
+
+        {form.isLivraisonAdresseDiff && (
+          <div className="border rounded-lg p-4 bg-gray-50 mt-4">
+            <div className="grid grid-cols-4 gap-4">
+              <div className="col-span-2">
+                <Input
+                  label="Adresse"
+                  value={form.livraisonAdresse}
+                  onChange={(v) => update({ livraisonAdresse: v })}
+                />
+              </div>
+              <div className="col-span-2">
+                <Input
+                  label="Adresse complémentaire"
+                  value={form.livraisonAdresseComp}
+                  onChange={(v) => update({ livraisonAdresseComp: v })}
+                />
+              </div>
+              <Input
+                label="CP"
+                value={form.livraisonCp}
+                onChange={(v) => update({ livraisonCp: v })}
+              />
+              <Input
+                label="Ville"
+                value={form.livraisonVille}
+                onChange={(v) => update({ livraisonVille: v })}
+              />
+              <div className="col-span-2">
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Pays
+                </label>
+                <select
+                  value={form.livraisonPaysId ?? ""}
+                  onChange={(e) =>
+                    update({
+                      livraisonPaysId: e.target.value
+                        ? Number(e.target.value)
+                        : undefined,
+                    })
+                  }
+                  className="w-full border rounded-lg px-3 py-2"
+                >
+                  <option value="">Sélectionner</option>
+                  {pays.map((p: any) => (
+                    <option key={p.id} value={p.id}>
+                      {p.nom}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Commentaire */}
+        <div className="mt-4">
+          <label className="block text-sm font-medium text-gray-700 mb-1">
+            Commentaire
+          </label>
+          <textarea
+            value={form.livraisonContactNote ?? ""}
+            onChange={(e) => update({ livraisonContactNote: e.target.value })}
+            className="w-full border rounded-lg px-3 py-2"
+            rows={3}
+          />
+        </div>
+      </div>
+
+      {/* ── Informations livraison ────────────────────────── */}
+      <div>
+        <h2 className="text-lg font-semibold mb-4">Informations livraison</h2>
+        <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Date de livraison
+              Date de livraison souhaitée *
+            </label>
+            <select
+              value={form.livraisonTypeDate ?? "EN_ATTENTE"}
+              onChange={(e) => update({ livraisonTypeDate: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2"
+            >
+              <option value="EN_ATTENTE">En attente</option>
+              <option value="AUSSITOT">Dès que possible</option>
+              <option value="CLIENT">À définir avec le client</option>
+              <option value="PRECIS">Date précise</option>
+            </select>
+          </div>
+
+          {form.livraisonTypeDate === "PRECIS" && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Date précise
+              </label>
+              <input
+                type="date"
+                value={
+                  form.livraisonDate
+                    ? form.livraisonDate.split("T")[0]
+                    : ""
+                }
+                onChange={(e) =>
+                  update({
+                    livraisonDate: e.target.value
+                      ? new Date(e.target.value).toISOString()
+                      : undefined,
+                  })
+                }
+                className="w-full border rounded-lg px-3 py-2"
+              />
+            </div>
+          )}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Date de 1ère utilisation de la borne
             </label>
             <input
-              type="datetime-local"
-              value={form.livraisonDate ?? ""}
-              onChange={(e) => update({ livraisonDate: e.target.value })}
+              type="date"
+              value={
+                form.livraisonDateFirstUsage
+                  ? form.livraisonDateFirstUsage.split("T")[0]
+                  : ""
+              }
+              onChange={(e) =>
+                update({
+                  livraisonDateFirstUsage: e.target.value
+                    ? new Date(e.target.value).toISOString()
+                    : undefined,
+                })
+              }
               className="w-full border rounded-lg px-3 py-2"
             />
           </div>
-        )}
-        <Input label="Adresse" value={form.livraisonAdresse} onChange={(v) => update({ livraisonAdresse: v })} />
-        <Input label="Ville" value={form.livraisonVille} onChange={(v) => update({ livraisonVille: v })} />
-        <Input label="Code postal" value={form.livraisonCp} onChange={(v) => update({ livraisonCp: v })} />
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1">Pays</label>
-          <select
-            value={form.livraisonPaysId ?? ""}
-            onChange={(e) =>
-              update({ livraisonPaysId: e.target.value ? Number(e.target.value) : undefined })
-            }
-            className="w-full border rounded-lg px-3 py-2"
-          >
-            <option value="">Sélectionner</option>
-            {pays.map((p: any) => (
-              <option key={p.id} value={p.id}>{p.nom}</option>
-            ))}
-          </select>
+
+          <div className="col-span-2">
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Informations supplémentaires
+            </label>
+            <textarea
+              value={form.livraisonInfosSup ?? ""}
+              onChange={(e) => update({ livraisonInfosSup: e.target.value })}
+              className="w-full border rounded-lg px-3 py-2"
+              rows={3}
+            />
+          </div>
         </div>
-      </div>
-
-      <h3 className="text-md font-medium">Contact livraison</h3>
-      <div className="grid grid-cols-2 gap-4">
-        <Input label="Nom complet" value={form.livraisonContactFullname} onChange={(v) => update({ livraisonContactFullname: v })} />
-        <Input label="Email" value={form.livraisonContactEmail} onChange={(v) => update({ livraisonContactEmail: v })} type="email" />
-        <Input label="Tél. mobile" value={form.livraisonContactTelMobile} onChange={(v) => update({ livraisonContactTelMobile: v })} />
-        <Input label="Tél. fixe" value={form.livraisonContactTelFixe} onChange={(v) => update({ livraisonContactTelFixe: v })} />
-      </div>
-
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Informations supplémentaires
-        </label>
-        <textarea
-          value={form.livraisonInfosSup ?? ""}
-          onChange={(e) => update({ livraisonInfosSup: e.target.value })}
-          className="w-full border rounded-lg px-3 py-2"
-          rows={3}
-        />
       </div>
     </div>
   );
@@ -1042,7 +1271,16 @@ function StepRecap({ form }: { form: Record<string, any> }) {
           <dl className="space-y-1 text-sm">
             <RecapRow label="Logiciel" value={form.logiciel} />
             {form.isMarqueBlanche && <RecapRow label="Option" value="Marque blanche" />}
-            {form.isCustomGravure && <RecapRow label="Option" value="Gravure personnalisée" />}
+            {form.isCustomGravure && (
+              <>
+                <RecapRow label="Option" value="Gravure personnalisée" />
+                <RecapRow label="Note gravure" value={form.gravureNote} />
+              </>
+            )}
+            {form.isValiseTransport && <RecapRow label="Option" value="Valise transport" />}
+            {form.isHousseProtection && <RecapRow label="Option" value="Housse protection" />}
+            {form.isWithoutImprimante && <RecapRow label="Option" value="Sans imprimante" />}
+            <RecapRow label="Infos sup." value={form.materielNote} />
           </dl>
         </div>
 
@@ -1050,9 +1288,48 @@ function StepRecap({ form }: { form: Record<string, any> }) {
         <div>
           <h3 className="font-medium text-gray-700 mb-2">Livraison</h3>
           <dl className="space-y-1 text-sm">
-            <RecapRow label="Adresse" value={form.livraisonAdresse} />
-            <RecapRow label="Ville" value={form.livraisonVille} />
-            <RecapRow label="Contact" value={form.livraisonContactFullname} />
+            {form.isLivraisonDifferent && (
+              <>
+                <RecapRow
+                  label="Contact"
+                  value={[form.livraisonContactFullname, form.livraisonContactLastname]
+                    .filter(Boolean)
+                    .join(" ")}
+                />
+                <RecapRow label="Fonction" value={form.livraisonContactFonction} />
+                <RecapRow label="Email" value={form.livraisonContactEmail} />
+                <RecapRow label="Tél." value={form.livraisonContactTelMobile} />
+              </>
+            )}
+            {form.isLivraisonAdresseDiff && (
+              <>
+                <RecapRow label="Adresse" value={form.livraisonAdresse} />
+                <RecapRow label="Adresse comp." value={form.livraisonAdresseComp} />
+                <RecapRow
+                  label="CP / Ville"
+                  value={[form.livraisonCp, form.livraisonVille].filter(Boolean).join(" ")}
+                />
+              </>
+            )}
+            <RecapRow label="Commentaire" value={form.livraisonContactNote} />
+            <RecapRow label="Date souhaitée" value={form.livraisonTypeDate} />
+            <RecapRow
+              label="Date précise"
+              value={
+                form.livraisonDate
+                  ? new Date(form.livraisonDate).toLocaleDateString("fr-FR")
+                  : undefined
+              }
+            />
+            <RecapRow
+              label="1ère utilisation"
+              value={
+                form.livraisonDateFirstUsage
+                  ? new Date(form.livraisonDateFirstUsage).toLocaleDateString("fr-FR")
+                  : undefined
+              }
+            />
+            <RecapRow label="Infos sup." value={form.livraisonInfosSup} />
           </dl>
         </div>
         {form.isCartonBobine && form.consommablesSelection && (
