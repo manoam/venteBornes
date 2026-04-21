@@ -54,7 +54,9 @@ export default function VenteDetailPage() {
         {/* Client */}
         <Section title="Client" icon={<Edit size={18} />}>
           <Field label="Nom" value={vente.client?.nom ?? vente.clientNom} />
-          <Field label="Prénom" value={vente.client?.prenom ?? vente.clientPrenom} />
+          {vente.clientType !== "corporation" && (
+            <Field label="Prénom" value={vente.client?.prenom ?? vente.clientPrenom} />
+          )}
           <Field label="Email" value={vente.client?.email ?? vente.clientEmail} />
           <Field label="Téléphone" value={vente.clientTelephone} />
           <Field
