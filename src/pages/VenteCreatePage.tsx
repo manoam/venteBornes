@@ -239,28 +239,27 @@ function StepClient({
             />
           </div>
 
-          {/* Partenaire — conditionnel si location financière */}
-          {(tv.includes("financ") || tv.includes("loca_fi") || tv.includes("locafi")) && (
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Partenaire
-              </label>
-              <SearchableSelect
-                options={[
-                  { value: "GRENKE", label: "Grenke" },
-                  { value: "LOCAM", label: "Locam" },
-                  { value: "LEASECOM", label: "Leasecom" },
-                ]}
-                value={form.partenaire}
-                onChange={(v) => update({ partenaire: v ? String(v) : undefined })}
-                placeholder="Sélectionner un partenaire"
-              />
-            </div>
-          )}
-
           {/* Champs conditionnels — Location */}
           {isLocaFi && (
             <>
+              {/* Partenaire — conditionnel si location financière */}
+              {(tv.includes("financ") || tv.includes("loca_fi") || tv.includes("locafi")) && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Partenaire
+                  </label>
+                  <SearchableSelect
+                    options={[
+                      { value: "GRENKE", label: "Grenke" },
+                      { value: "LOCAM", label: "Locam" },
+                      { value: "LEASECOM", label: "Leasecom" },
+                    ]}
+                    value={form.partenaire}
+                    onChange={(v) => update({ partenaire: v ? String(v) : undefined })}
+                    placeholder="Sélectionner un partenaire"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nombre de mois
@@ -283,7 +282,6 @@ function StepClient({
                   placeholder="12"
                 />
               </div>
-              <div />
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Date début
