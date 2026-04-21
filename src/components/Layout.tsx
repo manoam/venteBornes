@@ -11,6 +11,7 @@ import {
   Layers,
   Package,
   Palette,
+  Upload,
   RefreshCw,
 } from "lucide-react";
 import { clsx } from "clsx";
@@ -27,6 +28,7 @@ const settingsItems = [
   { to: "/parametres/gammes", label: "Gammes", icon: Layers },
   { to: "/parametres/modeles", label: "Modèles", icon: Package },
   { to: "/parametres/couleurs", label: "Couleurs", icon: Palette },
+  { to: "/parametres/import", label: "Import Excel", icon: Upload },
   { to: "/parametres/sync", label: "Synchronisation CRM", icon: RefreshCw },
 ];
 

@@ -12,6 +12,7 @@ import ContratsListPage from "./pages/ContratsListPage";
 import ContratDetailPage from "./pages/ContratDetailPage";
 import ContratCreatePage from "./pages/ContratCreatePage";
 import SyncPage from "./pages/SyncPage";
+import ImportPage from "./pages/ImportPage";
 import CouleursPage from "./pages/CouleursPage";
 
 export default function App() {
@@ -31,6 +32,7 @@ export default function App() {
         <Route path="/parametres/gammes" element={<GammesPage />} />
         <Route path="/parametres/modeles" element={<ModelesPage />} />
         <Route path="/parametres/couleurs" element={<CouleursPage />} />
+        <Route path="/parametres/import" element={<ImportPage />} />
         <Route path="/parametres/sync" element={<SyncPage />} />
       </Route>
     </Routes>
