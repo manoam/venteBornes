@@ -797,26 +797,12 @@ function StepMateriel({
       {/* ── Options borne ─────────────────────────────────── */}
       <div>
         <h2 className="text-lg font-semibold mb-4">Options borne</h2>
-        <div className="grid grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Marque blanche
-            </label>
-            <SearchableSelect
-              options={[
-                { value: "0", label: "Non" },
-                { value: "1", label: "Oui" },
-              ]}
-              value={form.isMarqueBlanche ? "1" : "0"}
-              onChange={(v) =>
-                update({ isMarqueBlanche: v === "1" })
-              }
-              placeholder="Sélectionner"
-            />
-          </div>
-        </div>
-
         <div className="space-y-3">
+          <Checkbox
+            label="Marque blanche"
+            checked={form.isMarqueBlanche}
+            onChange={(v) => update({ isMarqueBlanche: v })}
+          />
           <Checkbox
             label="Gravure personnalisée"
             checked={form.isCustomGravure}
