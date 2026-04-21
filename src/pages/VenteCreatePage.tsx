@@ -260,6 +260,20 @@ function StepClient({
                   />
                 </div>
               )}
+              {form.partenaire && (
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    Client chez {form.partenaire.charAt(0) + form.partenaire.slice(1).toLowerCase()}
+                  </label>
+                  <input
+                    type="text"
+                    value={form.clientPartenaire ?? ""}
+                    onChange={(e) => update({ clientPartenaire: e.target.value })}
+                    className="w-full border rounded-lg px-3 py-2"
+                    placeholder="Nom du client chez le partenaire"
+                  />
+                </div>
+              )}
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Nombre de mois
