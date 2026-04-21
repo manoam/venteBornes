@@ -3,7 +3,6 @@ import { Outlet, NavLink, useLocation } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
-  Receipt,
   FileSignature,
   Settings,
   ChevronDown,
@@ -19,7 +18,6 @@ import { clsx } from "clsx";
 const navItems = [
   { to: "/ventes", label: "Ventes", icon: ShoppingCart },
   { to: "/contrats", label: "Contrats", icon: FileSignature },
-  { to: "/facturations", label: "Facturations", icon: Receipt },
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
 ];
 
