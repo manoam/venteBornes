@@ -814,16 +814,6 @@ function StepMateriel({
               placeholder="Sélectionner"
             />
           </div>
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Logiciel
-            </label>
-            <input
-              value={form.logiciel ?? ""}
-              onChange={(e) => update({ logiciel: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
-            />
-          </div>
         </div>
 
         <div className="space-y-3">
@@ -845,22 +835,6 @@ function StepMateriel({
               />
             </div>
           )}
-
-          <Checkbox
-            label="Valise transport"
-            checked={form.isValiseTransport}
-            onChange={(v) => update({ isValiseTransport: v })}
-          />
-          <Checkbox
-            label="Housse protection"
-            checked={form.isHousseProtection}
-            onChange={(v) => update({ isHousseProtection: v })}
-          />
-          <Checkbox
-            label="Sans imprimante"
-            checked={form.isWithoutImprimante}
-            onChange={(v) => update({ isWithoutImprimante: v })}
-          />
         </div>
 
         {/* Infos supplémentaires */}
