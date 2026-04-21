@@ -1395,182 +1395,300 @@ function StepLivraison({
 }
 
 function StepRecap({ form }: { form: Record<string, any> }) {
+  const livraisonTypeDateLabels: Record<string, string> = {
+    EN_ATTENTE: "En attente",
+    AUSSITOT: "Dès que possible",
+    CLIENT: "À définir avec le client",
+    PRECIS: "Date précise",
+  };
+
+  const options = [
+    form.isSousLocation && "Convention partenariat sous-location",
+    form.isAbonnementBo && "Abonnement BO",
+  ].filter(Boolean);
+
+  const materielOptions = [
+    form.isMarqueBlanche && "Marque blanche",
+    form.isCustomGravure && "Gravure personnalisée",
+    form.isValiseTransport && "Valise transport",
+    form.isHousseProtection && "Housse protection",
+    form.isWithoutImprimante && "Sans imprimante",
+  ].filter(Boolean);
+
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold">Récapitulatif</h2>
-      <div className="grid grid-cols-2 gap-6">
+      <div className="flex items-center gap-3 mb-2">
+        <h2 className="text-xl font-bold">Récapitulatif de la vente</h2>
+      </div>
+
+      {/* ── Vente & Client ─────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Vente */}
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Vente</h3>
-          <dl className="space-y-1 text-sm">
-            <RecapRow label="Type de vente" value={form.typeVente} />
-            <RecapRow
-              label="Nombre de mois"
-              value={form.nbMois ? String(form.nbMois) : undefined}
-            />
-            <RecapRow
-              label="Date début"
-              value={
-                form.contratDebut
-                  ? new Date(form.contratDebut).toLocaleDateString("fr-FR")
-                  : undefined
-              }
-            />
-            <RecapRow
-              label="Date fin"
-              value={
-                form.contratFin
-                  ? new Date(form.contratFin).toLocaleDateString("fr-FR")
-                  : undefined
-              }
-            />
-            {form.isSousLocation && (
-              <RecapRow label="Option" value="Convention partenariat sous-location" />
-            )}
-            {form.isAbonnementBo && <RecapRow label="Option" value="Abonnement BO" />}
-          </dl>
-        </div>
+        <RecapCard title="Vente" color="blue">
+          <RecapField label="Type de vente" value={form.typeVente} />
+          <RecapField label="Nombre de mois" value={form.nbMois ? `${form.nbMois} mois` : undefined} />
+          <RecapField
+            label="Période"
+            value={
+              form.contratDebut || form.contratFin
+                ? `${form.contratDebut ? new Date(form.contratDebut).toLocaleDateString("fr-FR") : "—"} → ${form.contratFin ? new Date(form.contratFin).toLocaleDateString("fr-FR") : "—"}`
+                : undefined
+            }
+          />
+          {options.length > 0 && (
+            <div className="pt-2">
+              <span className="text-xs text-gray-500">Options</span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {options.map((o, i) => (
+                  <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+                    {o}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </RecapCard>
 
         {/* Client */}
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Client</h3>
-          <dl className="space-y-1 text-sm">
-            {form.crmClientLabel ? (
-              <RecapRow label="Client CRM" value={form.crmClientLabel} />
-            ) : (
-              <>
-                <RecapRow label="Genre" value={form.clientType === "particulier" ? "Particulier" : "Société"} />
-                <RecapRow label="Raison sociale" value={form.clientNom} />
-                <RecapRow label="Enseigne" value={form.clientEnseigne} />
-                <RecapRow label="Adresse" value={form.clientAdresse} />
-                <RecapRow label="CP / Ville" value={[form.clientCp, form.clientVille].filter(Boolean).join(" ")} />
-                <RecapRow label="Pays" value={form.clientPays} />
-                <RecapRow label="Email" value={form.clientEmail} />
-                <RecapRow label="Tél" value={form.clientTelephone} />
-                <RecapRow label="Siren" value={form.clientSiren} />
-                <RecapRow label="Siret" value={form.clientSiret} />
-                <RecapRow label="TVA Intra" value={form.clientTvaIntra} />
-              </>
-            )}
-            {form.isAgence && <RecapRow label="Agence pour" value={form.proprietaire} />}
-          </dl>
-        </div>
+        <RecapCard title="Client" color="green">
+          {form.crmClientLabel ? (
+            <div className="bg-green-50 border border-green-200 rounded-lg p-3">
+              <span className="text-xs text-green-600 font-medium">Client CRM</span>
+              <p className="text-sm font-medium text-gray-900 mt-1">{form.crmClientLabel}</p>
+            </div>
+          ) : (
+            <>
+              <RecapField label="Raison sociale" value={form.clientNom} highlight />
+              <RecapField label="Enseigne" value={form.clientEnseigne} />
+              <RecapField label="Email" value={form.clientEmail} />
+              <RecapField label="Téléphone" value={form.clientTelephone} />
+              <RecapField
+                label="Adresse"
+                value={[form.clientAdresse, form.clientCp, form.clientVille, form.clientPays].filter(Boolean).join(", ")}
+              />
+              <RecapField label="Siren / Siret" value={[form.clientSiren, form.clientSiret].filter(Boolean).join(" / ")} />
+            </>
+          )}
+          {form.isAgence && (
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+              <span className="text-yellow-700 font-medium">Agence pour :</span> {form.proprietaire}
+            </div>
+          )}
+        </RecapCard>
+      </div>
 
-        {/* Matériel */}
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Matériel</h3>
-          <dl className="space-y-1 text-sm">
-            <RecapRow label="Logiciel" value={form.logiciel} />
-            {form.isMarqueBlanche && <RecapRow label="Option" value="Marque blanche" />}
-            {form.isCustomGravure && (
-              <>
-                <RecapRow label="Option" value="Gravure personnalisée" />
-                <RecapRow label="Note gravure" value={form.gravureNote} />
-              </>
+      {/* ── Matériel & Équipements ─────────────────── */}
+      <RecapCard title="Matériel" color="purple" fullWidth>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <RecapField label="Logiciel" value={form.logiciel} />
+            {form.gravureNote && <RecapField label="Note gravure" value={form.gravureNote} />}
+            <RecapField label="Infos supplémentaires" value={form.materielNote} />
+          </div>
+          <div>
+            {materielOptions.length > 0 && (
+              <div>
+                <span className="text-xs text-gray-500">Options matériel</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {materielOptions.map((o, i) => (
+                    <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
+                      {o}
+                    </span>
+                  ))}
+                </div>
+              </div>
             )}
-            {form.isValiseTransport && <RecapRow label="Option" value="Valise transport" />}
-            {form.isHousseProtection && <RecapRow label="Option" value="Housse protection" />}
-            {form.isWithoutImprimante && <RecapRow label="Option" value="Sans imprimante" />}
-            <RecapRow label="Infos sup." value={form.materielNote} />
-          </dl>
+            {form.equipementVentes && Object.keys(form.equipementVentes).length > 0 && (
+              <div className="mt-3">
+                <span className="text-xs text-gray-500">Équipements sélectionnés</span>
+                <div className="mt-1 space-y-1">
+                  {Object.entries(form.equipementVentes as Record<string, any>).map(
+                    ([typeId, sel]: [string, any]) => (
+                      <div key={typeId} className="flex items-center gap-2 text-sm">
+                        <span className="w-2 h-2 rounded-full bg-purple-400" />
+                        {sel.aucun ? (
+                          <span className="text-gray-400 italic">Aucun(e)</span>
+                        ) : (
+                          <span>
+                            {sel.equipementId ? `Équipement #${sel.equipementId}` : "Non sélectionné"}
+                            {sel.materielOccasion && (
+                              <span className="ml-1 text-xs text-orange-600">(occasion)</span>
+                            )}
+                            {sel.valeurDefinir && (
+                              <span className="ml-1 text-xs text-blue-600">(à définir)</span>
+                            )}
+                          </span>
+                        )}
+                      </div>
+                    )
+                  )}
+                </div>
+              </div>
+            )}
+          </div>
         </div>
+      </RecapCard>
 
-        {/* Livraison */}
-        <div>
-          <h3 className="font-medium text-gray-700 mb-2">Livraison</h3>
-          <dl className="space-y-1 text-sm">
+      {/* ── Consommables ───────────────────────────── */}
+      {form.isCartonBobine && form.consommablesSelection && (
+        <RecapCard title="Options & Consommables" color="orange">
+          {Object.entries(form.consommablesSelection as Record<string, any>)
+            .filter(([, v]: [string, any]) => v.enabled)
+            .map(([typeId, v]: [string, any]) => (
+              <div key={typeId} className="space-y-1">
+                {Object.entries(v.sousTypes as Record<string, number>)
+                  .filter(([, qty]) => qty > 0)
+                  .map(([stId, qty]) => (
+                    <div key={stId} className="flex justify-between text-sm">
+                      <span className="text-gray-600">Sous-type #{stId}</span>
+                      <span className="font-medium">x{qty}</span>
+                    </div>
+                  ))}
+              </div>
+            ))}
+          {form.materielOtherNote && (
+            <div className="pt-2 border-t mt-2">
+              <span className="text-xs text-gray-500">Notes</span>
+              <p className="text-sm mt-1">{form.materielOtherNote}</p>
+            </div>
+          )}
+        </RecapCard>
+      )}
+
+      {/* ── Config Créa ────────────────────────────── */}
+      {(form.isContactCreaDifferent || form.configCreaNote) && (
+        <RecapCard title="Config Créa" color="indigo">
+          {form.isContactCreaDifferent && (
+            <div className="grid grid-cols-2 gap-4">
+              <RecapField
+                label="Contact"
+                value={[form.contactCreaFullname, form.contactCreaLastname].filter(Boolean).join(" ")}
+              />
+              <RecapField label="Fonction" value={form.contactCreaFonction} />
+              <RecapField label="Email" value={form.contactCreaEmail} />
+              <RecapField label="Tél." value={form.contactCreaTelMobile} />
+            </div>
+          )}
+          {form.configCreaNote && (
+            <div className="pt-2">
+              <span className="text-xs text-gray-500">Note de configuration</span>
+              <p className="text-sm mt-1 bg-indigo-50 rounded p-2">{form.configCreaNote}</p>
+            </div>
+          )}
+        </RecapCard>
+      )}
+
+      {/* ── Livraison ──────────────────────────────── */}
+      <RecapCard title="Livraison" color="teal" fullWidth>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-2">
             {form.isLivraisonDifferent && (
               <>
-                <RecapRow
-                  label="Contact"
-                  value={[form.livraisonContactFullname, form.livraisonContactLastname]
-                    .filter(Boolean)
-                    .join(" ")}
+                <RecapField
+                  label="Contact livraison"
+                  value={[form.livraisonContactFullname, form.livraisonContactLastname].filter(Boolean).join(" ")}
+                  highlight
                 />
-                <RecapRow label="Fonction" value={form.livraisonContactFonction} />
-                <RecapRow label="Email" value={form.livraisonContactEmail} />
-                <RecapRow label="Tél." value={form.livraisonContactTelMobile} />
+                <RecapField label="Fonction" value={form.livraisonContactFonction} />
+                <RecapField label="Email" value={form.livraisonContactEmail} />
+                <RecapField label="Tél." value={form.livraisonContactTelMobile} />
               </>
             )}
             {form.isLivraisonAdresseDiff && (
-              <>
-                <RecapRow label="Adresse" value={form.livraisonAdresse} />
-                <RecapRow label="Adresse comp." value={form.livraisonAdresseComp} />
-                <RecapRow
-                  label="CP / Ville"
-                  value={[form.livraisonCp, form.livraisonVille].filter(Boolean).join(" ")}
-                />
-              </>
+              <RecapField
+                label="Adresse livraison"
+                value={[form.livraisonAdresse, form.livraisonAdresseComp, form.livraisonCp, form.livraisonVille].filter(Boolean).join(", ")}
+              />
             )}
-            <RecapRow label="Commentaire" value={form.livraisonContactNote} />
-            <RecapRow label="Date souhaitée" value={form.livraisonTypeDate} />
-            <RecapRow
+            <RecapField label="Commentaire" value={form.livraisonContactNote} />
+          </div>
+          <div className="space-y-2">
+            <RecapField
+              label="Date souhaitée"
+              value={livraisonTypeDateLabels[form.livraisonTypeDate] ?? form.livraisonTypeDate}
+            />
+            <RecapField
               label="Date précise"
-              value={
-                form.livraisonDate
-                  ? new Date(form.livraisonDate).toLocaleDateString("fr-FR")
-                  : undefined
-              }
+              value={form.livraisonDate ? new Date(form.livraisonDate).toLocaleDateString("fr-FR") : undefined}
             />
-            <RecapRow
-              label="1ère utilisation"
-              value={
-                form.livraisonDateFirstUsage
-                  ? new Date(form.livraisonDateFirstUsage).toLocaleDateString("fr-FR")
-                  : undefined
-              }
+            <RecapField
+              label="1ère utilisation borne"
+              value={form.livraisonDateFirstUsage ? new Date(form.livraisonDateFirstUsage).toLocaleDateString("fr-FR") : undefined}
             />
-            <RecapRow label="Infos sup." value={form.livraisonInfosSup} />
-          </dl>
+            <RecapField label="Infos supplémentaires" value={form.livraisonInfosSup} />
+          </div>
         </div>
-        {form.isCartonBobine && form.consommablesSelection && (
-          <div>
-            <h3 className="font-medium text-gray-700 mb-2">Consommables</h3>
-            <dl className="space-y-1 text-sm">
-              {Object.entries(form.consommablesSelection as Record<string, any>)
-                .filter(([, v]: [string, any]) => v.enabled)
-                .map(([typeId, v]: [string, any]) => (
-                  <div key={typeId}>
-                    {Object.entries(v.sousTypes as Record<string, number>)
-                      .filter(([, qty]) => qty > 0)
-                      .map(([stId, qty]) => (
-                        <RecapRow
-                          key={stId}
-                          label={`Sous-type #${stId}`}
-                          value={`x${qty}`}
-                        />
-                      ))}
-                  </div>
-                ))}
-              {form.materielOtherNote && (
-                <RecapRow label="Notes" value={form.materielOtherNote} />
-              )}
-            </dl>
+      </RecapCard>
+
+      {/* Documents */}
+      {form.devisFiles?.length > 0 && (
+        <RecapCard title="Documents devis" color="gray">
+          <div className="space-y-1">
+            {form.devisFiles.map((f: File, i: number) => (
+              <div key={i} className="flex items-center gap-2 text-sm">
+                <span className="w-2 h-2 rounded-full bg-gray-400" />
+                <span>{f.name}</span>
+              </div>
+            ))}
           </div>
-        )}
-        {(form.isContactCreaDifferent || form.configCreaNote) && (
-          <div>
-            <h3 className="font-medium text-gray-700 mb-2">Config Créa</h3>
-            <dl className="space-y-1 text-sm">
-              {form.contactCreaFullname && (
-                <RecapRow
-                  label="Contact créa"
-                  value={`${form.contactCreaFullname ?? ""} ${form.contactCreaLastname ?? ""}`}
-                />
-              )}
-              {form.contactCreaEmail && (
-                <RecapRow label="Email créa" value={form.contactCreaEmail} />
-              )}
-              {form.contactCreaFonction && (
-                <RecapRow label="Fonction" value={form.contactCreaFonction} />
-              )}
-              {form.configCreaNote && (
-                <RecapRow label="Note config" value={form.configCreaNote} />
-              )}
-            </dl>
-          </div>
-        )}
+        </RecapCard>
+      )}
+    </div>
+  );
+}
+
+// ─── Recap sub-components ───────────────────────────────────
+
+const colorMap: Record<string, { border: string; bg: string; title: string }> = {
+  blue:   { border: "border-blue-200",   bg: "bg-blue-50",   title: "text-blue-800" },
+  green:  { border: "border-green-200",  bg: "bg-green-50",  title: "text-green-800" },
+  purple: { border: "border-purple-200", bg: "bg-purple-50", title: "text-purple-800" },
+  orange: { border: "border-orange-200", bg: "bg-orange-50", title: "text-orange-800" },
+  indigo: { border: "border-indigo-200", bg: "bg-indigo-50", title: "text-indigo-800" },
+  teal:   { border: "border-teal-200",   bg: "bg-teal-50",   title: "text-teal-800" },
+  gray:   { border: "border-gray-200",   bg: "bg-gray-50",   title: "text-gray-800" },
+};
+
+function RecapCard({
+  title,
+  color,
+  fullWidth,
+  children,
+}: {
+  title: string;
+  color: string;
+  fullWidth?: boolean;
+  children: React.ReactNode;
+}) {
+  const c = colorMap[color] ?? colorMap.gray;
+  return (
+    <div className={`rounded-lg border ${c.border} overflow-hidden ${fullWidth ? "" : ""}`}>
+      <div className={`px-5 py-3 ${c.bg} border-b ${c.border}`}>
+        <h3 className={`font-semibold text-sm uppercase tracking-wide ${c.title}`}>
+          {title}
+        </h3>
       </div>
+      <div className="px-5 py-4 bg-white space-y-3">{children}</div>
+    </div>
+  );
+}
+
+function RecapField({
+  label,
+  value,
+  highlight,
+}: {
+  label: string;
+  value?: string | null;
+  highlight?: boolean;
+}) {
+  if (!value) return null;
+  return (
+    <div>
+      <span className="text-xs text-gray-500">{label}</span>
+      <p className={`text-sm ${highlight ? "font-semibold text-gray-900" : "text-gray-700"}`}>
+        {value}
+      </p>
     </div>
   );
 }
@@ -1642,12 +1760,3 @@ function ReadonlyField({
   );
 }
 
-function RecapRow({ label, value }: { label: string; value?: string }) {
-  if (!value) return null;
-  return (
-    <div className="flex justify-between">
-      <dt className="text-gray-500">{label}</dt>
-      <dd className="font-medium">{value}</dd>
-    </div>
-  );
-}
