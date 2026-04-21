@@ -62,6 +62,8 @@ export const usersApi = {
 export const referenceApi = {
   gammesBornes: () => api.get("/reference/gammes-bornes").then((r) => r.data),
   couleurs: () => api.get("/reference/couleurs").then((r) => r.data),
+  equipementsByGamme: (gammeId: number) =>
+    api.get(`/reference/equipements-by-gamme/${gammeId}`).then((r) => r.data),
   accessoires: () => api.get("/reference/accessoires").then((r) => r.data),
   consommables: () => api.get("/reference/consommables").then((r) => r.data),
   parcs: () => api.get("/reference/parcs").then((r) => r.data),
@@ -91,6 +93,8 @@ export const syncApi = {
   gammes: () => api.post("/sync/gammes").then((r) => r.data),
   modeles: () => api.post("/sync/modeles").then((r) => r.data),
   couleurs: () => api.post("/sync/couleurs").then((r) => r.data),
+  typeEquipements: () => api.post("/sync/type-equipements").then((r) => r.data),
+  equipements: () => api.post("/sync/equipements").then((r) => r.data),
   users: () => api.post("/sync/users").then((r) => r.data),
 };
 

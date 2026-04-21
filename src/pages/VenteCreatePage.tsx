@@ -605,6 +605,37 @@ function StepMateriel({
 }) {
   const selectedGamme = gammes.find((g: any) => g.id === form.gammeBorneId);
 
+  // Charger les équipements dynamiquement quand la gamme change
+  const { data: typeEquipements = [] } = useQuery({
+    queryKey: ["equipements-by-gamme", form.gammeBorneId],
+    queryFn: () => referenceApi.equipementsByGamme(form.gammeBorneId),
+    enabled: !!form.gammeBorneId,
+  });
+
+  // State local pour les sélections d'équipements
+  const equipementVentes: Record<
+    number,
+    { equipementId?: number; aucun: boolean; valeurDefinir: boolean; materielOccasion: boolean }
+  > = form.equipementVentes ?? {};
+
+  const updateEquipement = (
+    typeId: number,
+    field: string,
+    value: any
+  ) => {
+    const current = equipementVentes[typeId] ?? {
+      aucun: false,
+      valeurDefinir: false,
+      materielOccasion: false,
+    };
+    const next = { ...equipementVentes, [typeId]: { ...current, [field]: value } };
+    // Si "aucun" coché, on vide l'équipement sélectionné
+    if (field === "aucun" && value) {
+      next[typeId].equipementId = undefined;
+    }
+    update({ equipementVentes: next });
+  };
+
   return (
     <div className="space-y-8">
       {/* ── Descriptif borne ──────────────────────────────── */}
@@ -623,6 +654,7 @@ function StepMateriel({
                     ? Number(e.target.value)
                     : undefined,
                   modelBorneId: undefined,
+                  equipementVentes: {},
                 })
               }
               className="w-full border rounded-lg px-3 py-2"
@@ -688,6 +720,105 @@ function StepMateriel({
           </div>
         </div>
       </div>
+
+      {/* ── Équipements par type (dynamique selon gamme) ── */}
+      {typeEquipements.length > 0 && (
+        <div>
+          <h2 className="text-lg font-semibold mb-4">Équipements</h2>
+          <div className="space-y-4">
+            {typeEquipements.map((te: any) => {
+              const sel = equipementVentes[te.id] ?? {
+                aucun: false,
+                valeurDefinir: false,
+                materielOccasion: false,
+              };
+              return (
+                <div
+                  key={te.id}
+                  className="border rounded-lg p-4 bg-gray-50"
+                >
+                  <h4 className="font-medium mb-3">{te.nom}</h4>
+                  <div className="grid grid-cols-4 gap-4 items-end">
+                    <div className="col-span-1">
+                      <label className="block text-xs font-medium text-gray-500 mb-1">
+                        Modèle
+                      </label>
+                      <select
+                        value={sel.equipementId ?? ""}
+                        onChange={(e) =>
+                          updateEquipement(
+                            te.id,
+                            "equipementId",
+                            e.target.value
+                              ? Number(e.target.value)
+                              : undefined
+                          )
+                        }
+                        disabled={sel.aucun}
+                        className="w-full border rounded px-2 py-1.5 text-sm disabled:bg-gray-200 disabled:opacity-50"
+                      >
+                        <option value="">Sélectionner</option>
+                        {te.equipements?.map((eq: any) => (
+                          <option key={eq.id} value={eq.id}>
+                            {eq.valeur}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <label className="flex items-center gap-2 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={sel.valeurDefinir}
+                        onChange={(e) =>
+                          updateEquipement(
+                            te.id,
+                            "valeurDefinir",
+                            e.target.checked
+                          )
+                        }
+                        disabled={sel.aucun}
+                        className="rounded"
+                      />
+                      Valeur à définir
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={sel.aucun}
+                        onChange={(e) =>
+                          updateEquipement(
+                            te.id,
+                            "aucun",
+                            e.target.checked
+                          )
+                        }
+                        className="rounded"
+                      />
+                      Aucun(e)
+                    </label>
+                    <label className="flex items-center gap-2 cursor-pointer text-sm">
+                      <input
+                        type="checkbox"
+                        checked={sel.materielOccasion}
+                        onChange={(e) =>
+                          updateEquipement(
+                            te.id,
+                            "materielOccasion",
+                            e.target.checked
+                          )
+                        }
+                        disabled={sel.aucun}
+                        className="rounded"
+                      />
+                      Matériel occasion
+                    </label>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* ── Options borne ─────────────────────────────────── */}
       <div>
