@@ -4,6 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
 import ClientSearchCrm from "../components/ClientSearchCrm";
+import SearchableSelect from "../components/SearchableSelect";
 
 type Step = "client" | "materiel" | "consommables" | "configCrea" | "livraison" | "recap";
 const STEPS: { key: Step; label: string }[] = [
@@ -208,39 +209,33 @@ function StepClient({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Commercial *
             </label>
-            <select
-              value={form.userId ?? ""}
-              onChange={(e) => update({ userId: Number(e.target.value) })}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="">Sélectionner</option>
-              {users.map((u: any) => (
-                <option key={u.id} value={u.id}>
-                  {u.prenom ? `${u.prenom} ${u.nom}` : u.nom}
-                </option>
-              ))}
-            </select>
+            <SearchableSelect
+              options={users.map((u: any) => ({
+                value: u.id,
+                label: u.prenom ? `${u.prenom} ${u.nom}` : u.nom,
+              }))}
+              value={form.userId}
+              onChange={(v) => update({ userId: v ? Number(v) : undefined })}
+              placeholder="Sélectionner"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Type de vente *
             </label>
-            <select
-              value={form.typeVente ?? ""}
-              onChange={(e) => {
-                const code = e.target.value;
+            <SearchableSelect
+              options={typesVentes.map((t: any) => ({
+                value: t.code,
+                label: t.label,
+              }))}
+              value={form.typeVente}
+              onChange={(v) => {
+                const code = v ? String(v) : "";
                 const type = typesVentes.find((t: any) => t.code === code);
                 update({ typeVente: code, typeVenteId: type?.id });
               }}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="">Sélectionner</option>
-              {typesVentes.map((t: any) => (
-                <option key={t.id} value={t.code}>
-                  {t.label}
-                </option>
-              ))}
-            </select>
+              placeholder="Sélectionner"
+            />
           </div>
 
           {/* Champs conditionnels — Location */}
@@ -646,77 +641,52 @@ function StepMateriel({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Gamme
             </label>
-            <select
-              value={form.gammeBorneId ?? ""}
-              onChange={(e) =>
+            <SearchableSelect
+              options={gammes.map((g: any) => ({ value: g.id, label: g.nom }))}
+              value={form.gammeBorneId}
+              onChange={(v) =>
                 update({
-                  gammeBorneId: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
+                  gammeBorneId: v ? Number(v) : undefined,
                   modelBorneId: undefined,
                   equipementVentes: {},
                 })
               }
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="">Sélectionner</option>
-              {gammes.map((g: any) => (
-                <option key={g.id} value={g.id}>
-                  {g.nom}
-                </option>
-              ))}
-            </select>
+              placeholder="Sélectionner"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Type (Modèle)
             </label>
-            <select
-              value={form.modelBorneId ?? ""}
-              onChange={(e) =>
-                update({
-                  modelBorneId: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
-                })
+            <SearchableSelect
+              options={(selectedGamme?.models ?? []).map((m: any) => ({
+                value: m.id,
+                label: m.nom,
+              }))}
+              value={form.modelBorneId}
+              onChange={(v) =>
+                update({ modelBorneId: v ? Number(v) : undefined })
               }
-              className="w-full border rounded-lg px-3 py-2"
-              disabled={!selectedGamme}
-            >
-              <option value="">
-                {selectedGamme
+              placeholder={
+                selectedGamme
                   ? "Sélectionner"
-                  : "Sélectionner en fonction de la gamme"}
-              </option>
-              {selectedGamme?.models?.map((m: any) => (
-                <option key={m.id} value={m.id}>
-                  {m.nom}
-                </option>
-              ))}
-            </select>
+                  : "Sélectionner en fonction de la gamme"
+              }
+              disabled={!selectedGamme}
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Couleur
             </label>
-            <select
-              value={form.couleurBorneId ?? ""}
-              onChange={(e) =>
-                update({
-                  couleurBorneId: e.target.value
-                    ? Number(e.target.value)
-                    : undefined,
-                })
+            <SearchableSelect
+              options={couleurs.map((c: any) => ({ value: c.id, label: c.nom }))}
+              value={form.couleurBorneId}
+              onChange={(v) =>
+                update({ couleurBorneId: v ? Number(v) : undefined })
               }
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="">Sélectionner</option>
-              {couleurs.map((c: any) => (
-                <option key={c.id} value={c.id}>
-                  {c.nom}
-                </option>
-              ))}
-            </select>
+              placeholder="Sélectionner"
+            />
           </div>
         </div>
       </div>
@@ -743,27 +713,22 @@ function StepMateriel({
                       <label className="block text-xs font-medium text-gray-500 mb-1">
                         Modèle
                       </label>
-                      <select
-                        value={sel.equipementId ?? ""}
-                        onChange={(e) =>
+                      <SearchableSelect
+                        options={(te.equipements ?? []).map((eq: any) => ({
+                          value: eq.id,
+                          label: eq.valeur,
+                        }))}
+                        value={sel.equipementId}
+                        onChange={(v) =>
                           updateEquipement(
                             te.id,
                             "equipementId",
-                            e.target.value
-                              ? Number(e.target.value)
-                              : undefined
+                            v ? Number(v) : undefined
                           )
                         }
                         disabled={sel.aucun}
-                        className="w-full border rounded px-2 py-1.5 text-sm disabled:bg-gray-200 disabled:opacity-50"
-                      >
-                        <option value="">Sélectionner</option>
-                        {te.equipements?.map((eq: any) => (
-                          <option key={eq.id} value={eq.id}>
-                            {eq.valeur}
-                          </option>
-                        ))}
-                      </select>
+                        placeholder="Sélectionner"
+                      />
                     </div>
                     <label className="flex items-center gap-2 cursor-pointer text-sm">
                       <input
@@ -828,16 +793,17 @@ function StepMateriel({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Marque blanche
             </label>
-            <select
+            <SearchableSelect
+              options={[
+                { value: "0", label: "Non" },
+                { value: "1", label: "Oui" },
+              ]}
               value={form.isMarqueBlanche ? "1" : "0"}
-              onChange={(e) =>
-                update({ isMarqueBlanche: e.target.value === "1" })
+              onChange={(v) =>
+                update({ isMarqueBlanche: v === "1" })
               }
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="0">Non</option>
-              <option value="1">Oui</option>
-            </select>
+              placeholder="Sélectionner"
+            />
           </div>
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
@@ -1274,24 +1240,14 @@ function StepLivraison({
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Pays
                 </label>
-                <select
-                  value={form.livraisonPaysId ?? ""}
-                  onChange={(e) =>
-                    update({
-                      livraisonPaysId: e.target.value
-                        ? Number(e.target.value)
-                        : undefined,
-                    })
+                <SearchableSelect
+                  options={pays.map((p: any) => ({ value: p.id, label: p.nom }))}
+                  value={form.livraisonPaysId}
+                  onChange={(v) =>
+                    update({ livraisonPaysId: v ? Number(v) : undefined })
                   }
-                  className="w-full border rounded-lg px-3 py-2"
-                >
-                  <option value="">Sélectionner</option>
-                  {pays.map((p: any) => (
-                    <option key={p.id} value={p.id}>
-                      {p.nom}
-                    </option>
-                  ))}
-                </select>
+                  placeholder="Sélectionner"
+                />
               </div>
             </div>
           </div>
@@ -1319,16 +1275,17 @@ function StepLivraison({
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Date de livraison souhaitée *
             </label>
-            <select
+            <SearchableSelect
+              options={[
+                { value: "EN_ATTENTE", label: "En attente" },
+                { value: "AUSSITOT", label: "Dès que possible" },
+                { value: "CLIENT", label: "À définir avec le client" },
+                { value: "PRECIS", label: "Date précise" },
+              ]}
               value={form.livraisonTypeDate ?? "EN_ATTENTE"}
-              onChange={(e) => update({ livraisonTypeDate: e.target.value })}
-              className="w-full border rounded-lg px-3 py-2"
-            >
-              <option value="EN_ATTENTE">En attente</option>
-              <option value="AUSSITOT">Dès que possible</option>
-              <option value="CLIENT">À définir avec le client</option>
-              <option value="PRECIS">Date précise</option>
-            </select>
+              onChange={(v) => update({ livraisonTypeDate: v ? String(v) : "EN_ATTENTE" })}
+              placeholder="Sélectionner"
+            />
           </div>
 
           {form.livraisonTypeDate === "PRECIS" && (
