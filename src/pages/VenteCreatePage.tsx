@@ -5,6 +5,7 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
 import ClientSearchCrm from "../components/ClientSearchCrm";
 import SearchableSelect from "../components/SearchableSelect";
+import GoogleAddressAutocomplete from "../components/GoogleAddressAutocomplete";
 
 type Step = "client" | "materiel" | "consommables" | "configCrea" | "livraison" | "recap";
 const STEPS: { key: Step; label: string }[] = [
@@ -1179,15 +1180,26 @@ function StepLivraison({
         </div>
 
         {form.isLivraisonAdresseDiff && (
-          <div className="border rounded-lg p-4 bg-gray-50 mt-4">
+          <div className="border rounded-lg p-4 bg-gray-50 mt-4 space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Adresse
+              </label>
+              <GoogleAddressAutocomplete
+                value={form.livraisonAdresse}
+                onChange={(v) => update({ livraisonAdresse: v })}
+                onSelect={(result) =>
+                  update({
+                    livraisonAdresse: result.adresse,
+                    livraisonCp: result.cp,
+                    livraisonVille: result.ville,
+                    livraisonPays: result.pays,
+                  })
+                }
+                placeholder="Saisir une adresse de livraison..."
+              />
+            </div>
             <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-2">
-                <Input
-                  label="Adresse"
-                  value={form.livraisonAdresse}
-                  onChange={(v) => update({ livraisonAdresse: v })}
-                />
-              </div>
               <div className="col-span-2">
                 <Input
                   label="Adresse complémentaire"
