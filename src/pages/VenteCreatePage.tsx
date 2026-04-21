@@ -249,13 +249,16 @@ function StepClient({
                   type="number"
                   min="0"
                   value={form.nbMois ?? ""}
-                  onChange={(e) =>
-                    update({
-                      nbMois: e.target.value
-                        ? Number(e.target.value)
-                        : undefined,
-                    })
-                  }
+                  onChange={(e) => {
+                    const mois = e.target.value ? Number(e.target.value) : undefined;
+                    const updates: Record<string, any> = { nbMois: mois };
+                    if (mois && form.contratDebut) {
+                      const d = new Date(form.contratDebut);
+                      d.setMonth(d.getMonth() + mois);
+                      updates.contratFin = d.toISOString();
+                    }
+                    update(updates);
+                  }}
                   className="w-full border rounded-lg px-3 py-2"
                   placeholder="12"
                 />
@@ -270,13 +273,19 @@ function StepClient({
                   value={
                     form.contratDebut ? form.contratDebut.split("T")[0] : ""
                   }
-                  onChange={(e) =>
-                    update({
+                  onChange={(e) => {
+                    const updates: Record<string, any> = {
                       contratDebut: e.target.value
                         ? new Date(e.target.value).toISOString()
                         : undefined,
-                    })
-                  }
+                    };
+                    if (e.target.value && form.nbMois) {
+                      const d = new Date(e.target.value);
+                      d.setMonth(d.getMonth() + Number(form.nbMois));
+                      updates.contratFin = d.toISOString();
+                    }
+                    update(updates);
+                  }}
                   className="w-full border rounded-lg px-3 py-2"
                 />
               </div>
