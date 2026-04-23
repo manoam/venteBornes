@@ -5,7 +5,6 @@ import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ventesApi, usersApi, referenceApi } from "../lib/api";
 import ClientSearchCrm from "../components/ClientSearchCrm";
 import SearchableSelect from "../components/SearchableSelect";
-import GoogleAddressAutocomplete from "../components/GoogleAddressAutocomplete";
 
 type Step = "client" | "materiel" | "livraison" | "recap";
 const STEPS: { key: Step; label: string }[] = [
@@ -109,10 +108,6 @@ export default function VenteEditPage() {
   const { data: couleurs } = useQuery({
     queryKey: ["couleurs"],
     queryFn: referenceApi.couleurs,
-  });
-  const { data: pays } = useQuery({
-    queryKey: ["pays"],
-    queryFn: referenceApi.pays,
   });
   const { data: typesVentes } = useQuery({
     queryKey: ["types-ventes"],
