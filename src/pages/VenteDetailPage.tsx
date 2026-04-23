@@ -1,8 +1,25 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Edit, Truck, CreditCard, Pencil } from "lucide-react";
+import { ArrowLeft, Pencil } from "lucide-react";
 import { ventesApi } from "../lib/api";
 import StatusBadge from "../components/StatusBadge";
+
+const colorMap: Record<string, { border: string; bg: string; title: string }> = {
+  blue:   { border: "border-blue-200",   bg: "bg-blue-50",   title: "text-blue-800" },
+  green:  { border: "border-green-200",  bg: "bg-green-50",  title: "text-green-800" },
+  purple: { border: "border-purple-200", bg: "bg-purple-50", title: "text-purple-800" },
+  orange: { border: "border-orange-200", bg: "bg-orange-50", title: "text-orange-800" },
+  indigo: { border: "border-indigo-200", bg: "bg-indigo-50", title: "text-indigo-800" },
+  teal:   { border: "border-teal-200",   bg: "bg-teal-50",   title: "text-teal-800" },
+  gray:   { border: "border-gray-200",   bg: "bg-gray-50",   title: "text-gray-800" },
+};
+
+const livraisonTypeDateLabels: Record<string, string> = {
+  EN_ATTENTE: "En attente",
+  AUSSITOT: "Dès que possible",
+  CLIENT: "À définir avec le client",
+  PRECIS: "Date précise",
+};
 
 export default function VenteDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -14,26 +31,56 @@ export default function VenteDetailPage() {
   });
 
   if (isLoading) {
-    return <div className="text-center py-12 text-gray-500">Chargement...</div>;
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full" />
+      </div>
+    );
   }
 
   if (!vente) {
-    return <div className="text-center py-12 text-gray-500">Vente non trouvée</div>;
+    return (
+      <div className="text-center py-20">
+        <p className="text-gray-500 text-lg">Vente non trouvée</p>
+        <Link to="/ventes" className="text-primary-600 hover:underline mt-2 inline-block">
+          Retour aux ventes
+        </Link>
+      </div>
+    );
   }
+
+  const options = [
+    vente.isSousLocation && "Convention partenariat sous-location",
+    vente.isAbonnementBo && "Abonnement BO",
+  ].filter(Boolean);
+
+  const materielOptions = [
+    vente.isMarqueBlanche && "Marque blanche",
+    vente.isCustomGravure && "Gravure personnalisée",
+    vente.isValiseTransport && "Valise transport",
+    vente.isHousseProtection && "Housse protection",
+    vente.isWithoutImprimante && "Sans imprimante",
+  ].filter(Boolean);
 
   return (
     <div>
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center gap-4">
-          <Link
-            to="/ventes"
-            className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
-          >
-            <ArrowLeft size={20} />
-          </Link>
+      {/* ── Header ──────────────────────────────────── */}
+      <div className="mb-8">
+        <Link
+          to="/ventes"
+          className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-gray-700 mb-4"
+        >
+          <ArrowLeft size={16} />
+          Retour aux ventes
+        </Link>
+
+        <div className="flex items-start justify-between">
           <div>
-            <h1 className="text-2xl font-bold">{vente.numero}</h1>
+            <div className="flex items-center gap-3 mb-1">
+              <h1 className="text-2xl font-bold">{vente.numero}</h1>
+              <StatusBadge type="statut" value={vente.venteStatut} />
+              <StatusBadge type="facturation" value={vente.etatFacturation} />
+            </div>
             <p className="text-sm text-gray-500">
               Créée le{" "}
               {new Date(vente.createdAt).toLocaleDateString("fr-FR", {
@@ -41,12 +88,11 @@ export default function VenteDetailPage() {
                 month: "long",
                 year: "numeric",
               })}
+              {vente.user && (
+                <> · Commercial : <span className="font-medium">{vente.user.prenom} {vente.user.nom}</span></>
+              )}
             </p>
           </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <StatusBadge type="statut" value={vente.venteStatut} />
-          <StatusBadge type="facturation" value={vente.etatFacturation} />
           <Link
             to={`/ventes/${vente.id}/modifier`}
             className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm"
@@ -57,163 +103,241 @@ export default function VenteDetailPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Client */}
-        <Section title="Client" icon={<Edit size={18} />}>
-          <Field label="Nom" value={vente.client?.nom ?? vente.clientNom} />
-          {vente.clientType !== "corporation" && (
-            <Field label="Prénom" value={vente.client?.prenom ?? vente.clientPrenom} />
-          )}
-          <Field label="Email" value={vente.client?.email ?? vente.clientEmail} />
-          <Field label="Téléphone" value={vente.clientTelephone} />
-          <Field
-            label="Adresse"
-            value={[vente.clientAdresse, vente.clientCp, vente.clientVille]
-              .filter(Boolean)
-              .join(", ")}
-          />
-        </Section>
-
-        {/* Équipement */}
-        <Section title="Équipement" icon={<Truck size={18} />}>
-          <Field label="Gamme" value={vente.gammeBorne?.nom} />
-          <Field label="Modèle" value={vente.modelBorne?.nom} />
-          <Field label="Couleur" value={vente.couleur?.nom} />
-          <Field label="Borne" value={vente.borne?.numero} />
-          <Field label="Logiciel" value={vente.logiciel} />
-          {vente.isMarqueBlanche && <Tag>Marque blanche</Tag>}
-          {vente.isCustomGravure && <Tag>Gravure personnalisée</Tag>}
-          {vente.isValiseTransport && <Tag>Valise transport</Tag>}
-          {vente.isHousseProtection && <Tag>Housse protection</Tag>}
-        </Section>
-
-        {/* Facturation */}
-        <Section title="Facturation" icon={<CreditCard size={18} />}>
-          <Field
-            label="Montant HT"
+      {/* ── Vente & Client ──────────────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Vente */}
+        <RecapCard title="Vente" color="blue">
+          <RecapField label="Type de vente" value={vente.typeVente} />
+          <RecapField label="Nombre de mois" value={vente.nbMois ? `${vente.nbMois} mois` : undefined} />
+          <RecapField
+            label="Période"
             value={
-              vente.facturationMontantHt
-                ? `${Number(vente.facturationMontantHt).toLocaleString("fr-FR")} €`
+              vente.contratDebut || vente.contratFin
+                ? `${vente.contratDebut ? new Date(vente.contratDebut).toLocaleDateString("fr-FR") : "—"} → ${vente.contratFin ? new Date(vente.contratFin).toLocaleDateString("fr-FR") : "—"}`
                 : undefined
             }
           />
-          <Field label="Entité juridique" value={vente.facturationEntityJurid} />
-          <Field label="Type achat" value={vente.facturationAchatType} />
-          <Field
-            label="CP / Ville"
-            value={[vente.facturationCp, vente.facturationVille]
-              .filter(Boolean)
-              .join(" ")}
-          />
-          <Field label="État" value={undefined}>
-            <StatusBadge type="facturation" value={vente.etatFacturation} />
-          </Field>
-        </Section>
-
-        {/* Livraison */}
-        <Section title="Livraison" icon={<Truck size={18} />}>
-          <Field
-            label="Adresse"
-            value={[vente.livraisonAdresse, vente.livraisonCp, vente.livraisonVille]
-              .filter(Boolean)
-              .join(", ")}
-          />
-          <Field label="Pays" value={vente.livraisonPays?.nom} />
-          <Field
-            label="Date"
-            value={
-              vente.livraisonDate
-                ? new Date(vente.livraisonDate).toLocaleDateString("fr-FR")
-                : undefined
-            }
-          />
-          <Field label="Contact" value={vente.livraisonContactFullname} />
-          <Field label="Email contact" value={vente.livraisonContactEmail} />
-          <Field label="Infos supplémentaires" value={vente.livraisonInfosSup} />
-        </Section>
-
-        {/* Accessoires */}
-        {vente.accessoires?.length > 0 && (
-          <Section title="Accessoires">
-            <div className="space-y-2">
-              {vente.accessoires.map((a: any) => (
-                <div
-                  key={a.id}
-                  className="flex justify-between items-center py-1"
-                >
-                  <span>{a.accessoire?.nom}</span>
-                  <span className="text-sm text-gray-500">x{a.qty}</span>
-                </div>
-              ))}
-            </div>
-          </Section>
-        )}
-
-        {/* Consommables */}
-        {vente.consommables?.length > 0 && (
-          <Section title="Consommables">
-            <div className="space-y-2">
-              {vente.consommables.map((c: any) => (
-                <div
-                  key={c.id}
-                  className="flex justify-between items-center py-1"
-                >
-                  <span>
-                    {c.typeConsommable?.nom} — {c.sousTypeConsommable?.nom}
+          {options.length > 0 && (
+            <div className="pt-2">
+              <span className="text-xs text-gray-500">Options</span>
+              <div className="flex flex-wrap gap-1.5 mt-1">
+                {options.map((o, i) => (
+                  <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-blue-100 text-blue-700">
+                    {o}
                   </span>
-                  <span className="text-sm text-gray-500">x{c.qty}</span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
-          </Section>
-        )}
+          )}
+        </RecapCard>
+
+        {/* Client */}
+        <RecapCard title="Client" color="green">
+          <RecapField label="Nom" value={vente.client?.nom ?? vente.clientNom} highlight />
+          {vente.clientType !== "corporation" && (
+            <RecapField label="Prénom" value={vente.client?.prenom ?? vente.clientPrenom} />
+          )}
+          <RecapField label="Email" value={vente.client?.email ?? vente.clientEmail} />
+          <RecapField label="Téléphone" value={vente.clientTelephone} />
+          <RecapField
+            label="Adresse"
+            value={[vente.clientAdresse, vente.clientCp, vente.clientVille, vente.clientPays].filter(Boolean).join(", ")}
+          />
+          {vente.isAgence && (
+            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+              <span className="text-yellow-700 font-medium">Agence pour :</span> {vente.proprietaire}
+            </div>
+          )}
+        </RecapCard>
       </div>
+
+      {/* ── Matériel ────────────────────────────────── */}
+      <RecapCard title="Matériel" color="purple" className="mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            <RecapField label="Gamme" value={vente.gammeBorne?.nom} />
+            <RecapField label="Modèle" value={vente.modelBorne?.nom} />
+            <RecapField label="Couleur" value={vente.couleur?.nom} />
+            <RecapField label="Borne" value={vente.borne?.numero} />
+            <RecapField label="Logiciel" value={vente.logiciel} />
+            {vente.gravureNote && <RecapField label="Note gravure" value={vente.gravureNote} />}
+            <RecapField label="Infos supplémentaires" value={vente.materielNote} />
+          </div>
+          <div>
+            {materielOptions.length > 0 && (
+              <div>
+                <span className="text-xs text-gray-500">Options matériel</span>
+                <div className="flex flex-wrap gap-1.5 mt-1">
+                  {materielOptions.map((o, i) => (
+                    <span key={i} className="inline-flex items-center px-2 py-0.5 rounded-full text-xs bg-purple-100 text-purple-700">
+                      {o}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            )}
+            {vente.equipementVentes?.length > 0 && (
+              <div className="mt-3">
+                <span className="text-xs text-gray-500">Équipements</span>
+                <div className="mt-1 space-y-1">
+                  {vente.equipementVentes.map((ev: any) => (
+                    <div key={ev.id} className="flex items-center gap-2 text-sm">
+                      <span className="w-2 h-2 rounded-full bg-purple-400" />
+                      <span className="font-medium">{ev.typeEquipement?.nom}:</span>
+                      {ev.aucun ? (
+                        <span className="text-gray-400 italic">Aucun(e)</span>
+                      ) : (
+                        <span>
+                          {ev.equipement?.valeur ?? "Non sélectionné"}
+                          {ev.materielOccasion && <span className="ml-1 text-xs text-orange-600">(occasion)</span>}
+                          {ev.valeurDefinir && <span className="ml-1 text-xs text-blue-600">(à définir)</span>}
+                        </span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+      </RecapCard>
+
+      {/* ── Consommables ────────────────────────────── */}
+      {vente.consommables?.length > 0 && (
+        <RecapCard title="Consommables" color="orange" className="mb-6">
+          <div className="space-y-2">
+            {vente.consommables.map((c: any) => (
+              <div key={c.id} className="flex justify-between items-center text-sm">
+                <span>{c.typeConsommable?.nom} — {c.sousTypeConsommable?.nom}</span>
+                <span className="font-medium">x{c.qty}</span>
+              </div>
+            ))}
+          </div>
+        </RecapCard>
+      )}
+
+      {/* ── Config Créa ─────────────────────────────── */}
+      {(vente.isContactCreaDifferent || vente.configCreaNote) && (
+        <RecapCard title="Config Créa" color="indigo" className="mb-6">
+          {vente.isContactCreaDifferent && (
+            <div className="grid grid-cols-2 gap-4">
+              <RecapField
+                label="Contact"
+                value={[vente.contactCreaFullname, vente.contactCreaLastname].filter(Boolean).join(" ")}
+              />
+              <RecapField label="Fonction" value={vente.contactCreaFonction} />
+              <RecapField label="Email" value={vente.contactCreaEmail} />
+              <RecapField label="Tél." value={vente.contactCreaTelMobile} />
+            </div>
+          )}
+          {vente.configCreaNote && (
+            <div className="pt-2">
+              <span className="text-xs text-gray-500">Note de configuration</span>
+              <p className="text-sm mt-1 bg-indigo-50 rounded p-2">{vente.configCreaNote}</p>
+            </div>
+          )}
+        </RecapCard>
+      )}
+
+      {/* ── Livraison ───────────────────────────────── */}
+      <RecapCard title="Livraison" color="teal" className="mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div className="space-y-2">
+            {vente.isLivraisonDifferent && (
+              <>
+                <RecapField
+                  label="Contact livraison"
+                  value={[vente.livraisonContactFullname, vente.livraisonContactLastname].filter(Boolean).join(" ")}
+                  highlight
+                />
+                <RecapField label="Fonction" value={vente.livraisonContactFonction} />
+                <RecapField label="Email" value={vente.livraisonContactEmail} />
+                <RecapField label="Tél." value={vente.livraisonContactTelMobile} />
+              </>
+            )}
+            {vente.isLivraisonAdresseDiff && (
+              <RecapField
+                label="Adresse livraison"
+                value={[vente.livraisonAdresse, vente.livraisonAdresseComp, vente.livraisonCp, vente.livraisonVille, vente.livraisonPays].filter(Boolean).join(", ")}
+              />
+            )}
+            <RecapField label="Commentaire" value={vente.livraisonContactNote} />
+          </div>
+          <div className="space-y-2">
+            <RecapField
+              label="Date souhaitée"
+              value={livraisonTypeDateLabels[vente.livraisonTypeDate] ?? vente.livraisonTypeDate}
+            />
+            <RecapField
+              label="Date précise"
+              value={vente.livraisonDate ? new Date(vente.livraisonDate).toLocaleDateString("fr-FR") : undefined}
+            />
+            <RecapField
+              label="1ère utilisation borne"
+              value={vente.livraisonDateFirstUsage ? new Date(vente.livraisonDateFirstUsage).toLocaleDateString("fr-FR") : undefined}
+            />
+            <RecapField label="Infos supplémentaires" value={vente.livraisonInfosSup} />
+          </div>
+        </div>
+      </RecapCard>
+
+      {/* ── Contrat lié ─────────────────────────────── */}
+      {vente.contrat && (
+        <RecapCard title="Contrat associé" color="gray" className="mb-6">
+          <Link
+            to={`/contrats/${vente.contrat.id}`}
+            className="inline-flex items-center gap-2 text-primary-600 hover:text-primary-800 font-medium bg-primary-50 px-4 py-2 rounded-lg transition-colors"
+          >
+            {vente.contrat.numero}
+          </Link>
+        </RecapCard>
+      )}
     </div>
   );
 }
 
-function Section({
+// ─── Sub-components (même style que le récap) ───────────────
+
+function RecapCard({
   title,
-  icon,
+  color,
+  className,
   children,
 }: {
   title: string;
-  icon?: React.ReactNode;
+  color: string;
+  className?: string;
   children: React.ReactNode;
 }) {
+  const c = colorMap[color] ?? colorMap.gray;
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
-      <h2 className="flex items-center gap-2 text-lg font-semibold mb-4">
-        {icon}
-        {title}
-      </h2>
-      <div className="space-y-3">{children}</div>
+    <div className={`rounded-lg border ${c.border} overflow-hidden ${className ?? ""}`}>
+      <div className={`px-5 py-3 ${c.bg} border-b ${c.border}`}>
+        <h3 className={`font-semibold text-sm uppercase tracking-wide ${c.title}`}>
+          {title}
+        </h3>
+      </div>
+      <div className="px-5 py-4 bg-white space-y-3">{children}</div>
     </div>
   );
 }
 
-function Field({
+function RecapField({
   label,
   value,
-  children,
+  highlight,
 }: {
   label: string;
   value?: string | null;
-  children?: React.ReactNode;
+  highlight?: boolean;
 }) {
-  if (!value && !children) return null;
+  if (!value) return null;
   return (
-    <div className="flex justify-between">
-      <span className="text-sm text-gray-500">{label}</span>
-      {children ?? <span className="text-sm font-medium">{value}</span>}
+    <div>
+      <span className="text-xs text-gray-500">{label}</span>
+      <p className={`text-sm ${highlight ? "font-semibold text-gray-900" : "text-gray-700"}`}>
+        {value}
+      </p>
     </div>
-  );
-}
-
-function Tag({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="inline-block bg-primary-50 text-primary-700 text-xs px-2 py-1 rounded mr-2 mt-1">
-      {children}
-    </span>
   );
 }
