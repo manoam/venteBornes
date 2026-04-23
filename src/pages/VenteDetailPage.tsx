@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Edit, Truck, CreditCard } from "lucide-react";
+import { ArrowLeft, Edit, Truck, CreditCard, Pencil } from "lucide-react";
 import { ventesApi } from "../lib/api";
 import StatusBadge from "../components/StatusBadge";
 
@@ -44,9 +44,16 @@ export default function VenteDetailPage() {
             </p>
           </div>
         </div>
-        <div className="flex gap-2">
+        <div className="flex items-center gap-3">
           <StatusBadge type="statut" value={vente.venteStatut} />
           <StatusBadge type="facturation" value={vente.etatFacturation} />
+          <Link
+            to={`/ventes/${vente.id}/modifier`}
+            className="flex items-center gap-2 px-4 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 text-sm"
+          >
+            <Pencil size={16} />
+            Modifier
+          </Link>
         </div>
       </div>
 
