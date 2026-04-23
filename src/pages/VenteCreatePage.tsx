@@ -75,6 +75,19 @@ function venteToForm(vente: any): Record<string, any> {
     livraisonDate: vente.livraisonDate ?? undefined,
     livraisonDateFirstUsage: vente.livraisonDateFirstUsage ?? undefined,
     livraisonInfosSup: vente.livraisonInfosSup ?? undefined,
+    // Équipements — mapper depuis la relation vers le format du formulaire
+    equipementVentes: (vente.equipementVentes ?? []).reduce(
+      (acc: Record<number, any>, ev: any) => {
+        acc[ev.typeEquipementId] = {
+          equipementId: ev.equipementId ?? undefined,
+          aucun: ev.aucun ?? false,
+          valeurDefinir: ev.valeurDefinir ?? false,
+          materielOccasion: ev.materielOccasion ?? false,
+        };
+        return acc;
+      },
+      {} as Record<number, any>
+    ),
   };
 }
 
