@@ -125,10 +125,6 @@ export default function VenteCreatePage() {
     queryKey: ["couleurs"],
     queryFn: referenceApi.couleurs,
   });
-  const { data: pays } = useQuery({
-    queryKey: ["pays"],
-    queryFn: referenceApi.pays,
-  });
   const { data: consommables } = useQuery({
     queryKey: ["consommables"],
     queryFn: referenceApi.consommables,
@@ -259,7 +255,7 @@ export default function VenteCreatePage() {
           <StepConfigCrea form={form} update={update} />
         )}
         {step === "livraison" && (
-          <StepLivraison form={form} update={update} pays={pays ?? []} />
+          <StepLivraison form={form} update={update} />
         )}
         {step === "recap" && <StepRecap form={form} />}
       </div>
@@ -1267,11 +1263,9 @@ function StepConfigCrea({
 function StepLivraison({
   form,
   update,
-  pays,
 }: {
   form: Record<string, any>;
   update: (f: Record<string, any>) => void;
-  pays: any[];
 }) {
   return (
     <div className="space-y-8">
@@ -1334,32 +1328,32 @@ function StepLivraison({
 
         {form.isLivraisonAdresseDiff && (
           <div className="border rounded-lg p-4 bg-gray-50 mt-4 space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Adresse
-              </label>
-              <GoogleAddressAutocomplete
-                value={form.livraisonAdresse}
-                onChange={(v) => update({ livraisonAdresse: v })}
-                onSelect={(result) =>
-                  update({
-                    livraisonAdresse: result.adresse,
-                    livraisonCp: result.cp,
-                    livraisonVille: result.ville,
-                    livraisonPays: result.pays,
-                  })
-                }
-                placeholder="Saisir une adresse de livraison..."
-              />
-            </div>
-            <div className="grid grid-cols-4 gap-4">
-              <div className="col-span-2">
-                <Input
-                  label="Adresse complémentaire"
-                  value={form.livraisonAdresseComp}
-                  onChange={(v) => update({ livraisonAdresseComp: v })}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">
+                  Adresse
+                </label>
+                <GoogleAddressAutocomplete
+                  value={form.livraisonAdresse}
+                  onChange={(v) => update({ livraisonAdresse: v })}
+                  onSelect={(result) =>
+                    update({
+                      livraisonAdresse: result.adresse,
+                      livraisonCp: result.cp,
+                      livraisonVille: result.ville,
+                      livraisonPays: result.pays,
+                    })
+                  }
+                  placeholder="Saisir une adresse..."
                 />
               </div>
+              <Input
+                label="Adresse complémentaire"
+                value={form.livraisonAdresseComp}
+                onChange={(v) => update({ livraisonAdresseComp: v })}
+              />
+            </div>
+            <div className="grid grid-cols-3 gap-4">
               <Input
                 label="CP"
                 value={form.livraisonCp}
@@ -1370,19 +1364,11 @@ function StepLivraison({
                 value={form.livraisonVille}
                 onChange={(v) => update({ livraisonVille: v })}
               />
-              <div className="col-span-2">
-                <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Pays
-                </label>
-                <SearchableSelect
-                  options={pays.map((p: any) => ({ value: p.id, label: p.nom }))}
-                  value={form.livraisonPaysId}
-                  onChange={(v) =>
-                    update({ livraisonPaysId: v ? Number(v) : undefined })
-                  }
-                  placeholder="Sélectionner"
-                />
-              </div>
+              <Input
+                label="Pays"
+                value={form.livraisonPays}
+                onChange={(v) => update({ livraisonPays: v })}
+              />
             </div>
           </div>
         )}
