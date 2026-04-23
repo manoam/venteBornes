@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Menu, FileSignature, ChevronDown, LogOut, Settings, User } from "lucide-react";
+import { Menu, FileSignature, ChevronDown, LogOut, Settings } from "lucide-react";
 import keycloak from "../lib/keycloak";
 
 interface TopbarProps {
