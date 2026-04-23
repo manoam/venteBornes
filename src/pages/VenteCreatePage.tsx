@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { useNavigate, Link } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams, Link } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { ArrowLeft, ArrowRight, Check } from "lucide-react";
 import { ventesApi, clientsApi, usersApi, referenceApi } from "../lib/api";
@@ -17,14 +17,91 @@ const STEPS: { key: Step; label: string }[] = [
   { key: "recap", label: "Récapitulatif" },
 ];
 
+function venteToForm(vente: any): Record<string, any> {
+  return {
+    userId: vente.userId,
+    typeVente: vente.typeVente,
+    partenaire: vente.partenaire ?? undefined,
+    clientPartenaire: vente.clientPartenaire ?? undefined,
+    nbMois: vente.nbMois ?? undefined,
+    contratDebut: vente.contratDebut ?? undefined,
+    contratFin: vente.contratFin ?? undefined,
+    isSousLocation: vente.isSousLocation ?? false,
+    isAbonnementBo: vente.isAbonnementBo ?? false,
+    crmClientId: vente.client?.crmId ?? undefined,
+    crmClientLabel: vente.client ? `${vente.client.nom} ${vente.client.prenom ?? ""}`.trim() : undefined,
+    clientId: vente.clientId ?? undefined,
+    clientNom: vente.clientNom ?? vente.client?.nom ?? undefined,
+    clientPrenom: vente.clientPrenom ?? vente.client?.prenom ?? undefined,
+    clientEmail: vente.clientEmail ?? vente.client?.email ?? undefined,
+    clientTelephone: vente.clientTelephone ?? vente.client?.telephone ?? undefined,
+    clientAdresse: vente.clientAdresse ?? vente.client?.adresse ?? undefined,
+    clientVille: vente.clientVille ?? vente.client?.ville ?? undefined,
+    clientCp: vente.clientCp ?? vente.client?.codePostal ?? undefined,
+    clientPays: vente.clientPays ?? vente.client?.pays ?? undefined,
+    gammeBorneId: vente.gammeBorneId ?? undefined,
+    modelBorneId: vente.modelBorneId ?? undefined,
+    couleurBorneId: vente.couleurBorneId ?? undefined,
+    isMarqueBlanche: vente.isMarqueBlanche ?? false,
+    isCustomGravure: vente.isCustomGravure ?? false,
+    gravureNote: vente.gravureNote ?? undefined,
+    materielNote: vente.materielNote ?? undefined,
+    isCartonBobine: vente.isCartonBobine ?? false,
+    materielOtherNote: vente.materielOtherNote ?? undefined,
+    isContactCreaDifferent: vente.isContactCreaDifferent ?? false,
+    contactCreaFullname: vente.contactCreaFullname ?? undefined,
+    contactCreaLastname: vente.contactCreaLastname ?? undefined,
+    contactCreaFonction: vente.contactCreaFonction ?? undefined,
+    contactCreaEmail: vente.contactCreaEmail ?? undefined,
+    contactCreaTelMobile: vente.contactCreaTelMobile ?? undefined,
+    contactCreaTelFixe: vente.contactCreaTelFixe ?? undefined,
+    contactCreaNote: vente.contactCreaNote ?? undefined,
+    configCreaNote: vente.configCreaNote ?? undefined,
+    isLivraisonDifferent: vente.isLivraisonDifferent ?? false,
+    livraisonContactFullname: vente.livraisonContactFullname ?? undefined,
+    livraisonContactLastname: vente.livraisonContactLastname ?? undefined,
+    livraisonContactFonction: vente.livraisonContactFonction ?? undefined,
+    livraisonContactEmail: vente.livraisonContactEmail ?? undefined,
+    livraisonContactTelMobile: vente.livraisonContactTelMobile ?? undefined,
+    livraisonContactTelFixe: vente.livraisonContactTelFixe ?? undefined,
+    isLivraisonAdresseDiff: vente.isLivraisonAdresseDiff ?? false,
+    livraisonAdresse: vente.livraisonAdresse ?? undefined,
+    livraisonAdresseComp: vente.livraisonAdresseComp ?? undefined,
+    livraisonCp: vente.livraisonCp ?? undefined,
+    livraisonVille: vente.livraisonVille ?? undefined,
+    livraisonPaysId: vente.livraisonPaysId ?? undefined,
+    livraisonContactNote: vente.livraisonContactNote ?? undefined,
+    livraisonTypeDate: vente.livraisonTypeDate ?? "EN_ATTENTE",
+    livraisonDate: vente.livraisonDate ?? undefined,
+    livraisonDateFirstUsage: vente.livraisonDateFirstUsage ?? undefined,
+    livraisonInfosSup: vente.livraisonInfosSup ?? undefined,
+  };
+}
+
 export default function VenteCreatePage() {
+  const { id: editId } = useParams<{ id?: string }>();
+  const isEditMode = !!editId;
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [step, setStep] = useState<Step>("client");
-  const [form, setForm] = useState<Record<string, any>>({
-    typeVente: "location",
-    userId: 1,
+  const [form, setForm] = useState<Record<string, any>>(
+    isEditMode ? {} : { typeVente: "", userId: undefined }
+  );
+  const [formReady, setFormReady] = useState(!isEditMode);
+
+  // Charger la vente en mode édition
+  const { data: existingVente } = useQuery({
+    queryKey: ["vente", editId],
+    queryFn: () => ventesApi.get(Number(editId)),
+    enabled: isEditMode,
   });
+
+  useEffect(() => {
+    if (isEditMode && existingVente && !formReady) {
+      setForm(venteToForm(existingVente));
+      setFormReady(true);
+    }
+  }, [existingVente, isEditMode, formReady]);
 
   const { data: users } = useQuery({ queryKey: ["users"], queryFn: usersApi.list });
   const { data: gammes } = useQuery({
@@ -56,6 +133,17 @@ export default function VenteCreatePage() {
     },
   });
 
+  const updateMutation = useMutation({
+    mutationFn: (data: Record<string, any>) => ventesApi.update(Number(editId), data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["ventes"] });
+      queryClient.invalidateQueries({ queryKey: ["vente", editId] });
+      navigate(`/ventes/${editId}`);
+    },
+  });
+
+  const mutation = isEditMode ? updateMutation : createMutation;
+
   const update = (fields: Record<string, any>) =>
     setForm((prev) => ({ ...prev, ...fields }));
 
@@ -64,7 +152,7 @@ export default function VenteCreatePage() {
 
   const goNext = () => {
     if (isLast) {
-      createMutation.mutate(form);
+      mutation.mutate(form);
     } else {
       setStep(STEPS[currentStepIndex + 1].key);
     }
@@ -76,14 +164,31 @@ export default function VenteCreatePage() {
     }
   };
 
+  if (isEditMode && !formReady) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="animate-spin w-8 h-8 border-4 border-primary-200 border-t-primary-600 rounded-full" />
+      </div>
+    );
+  }
+
+  const backUrl = isEditMode ? `/ventes/${editId}` : "/ventes";
+
   return (
     <div>
       {/* Header */}
       <div className="flex items-center gap-4 mb-6">
-        <Link to="/ventes" className="p-2 hover:bg-gray-100 rounded-lg">
+        <Link to={backUrl} className="p-2 hover:bg-gray-100 rounded-lg">
           <ArrowLeft size={20} />
         </Link>
-        <h1 className="text-2xl font-bold">Nouvelle vente</h1>
+        <div>
+          <h1 className="text-2xl font-bold">
+            {isEditMode ? `Modifier ${existingVente?.numero ?? ""}` : "Nouvelle vente"}
+          </h1>
+          {isEditMode && (
+            <p className="text-sm text-gray-500">Modifiez les informations et enregistrez</p>
+          )}
+        </div>
       </div>
 
       {/* Stepper */}
@@ -91,7 +196,7 @@ export default function VenteCreatePage() {
         {STEPS.map((s, i) => (
           <div key={s.key} className="flex items-center">
             <button
-              onClick={() => i <= currentStepIndex && setStep(s.key)}
+              onClick={() => (isEditMode || i <= currentStepIndex) && setStep(s.key)}
               className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                 s.key === step
                   ? "bg-primary-600 text-white"
@@ -158,13 +263,17 @@ export default function VenteCreatePage() {
         </button>
         <button
           onClick={goNext}
-          disabled={createMutation.isPending}
+          disabled={mutation.isPending}
           className="flex items-center gap-2 px-6 py-2 bg-primary-600 text-white rounded-lg hover:bg-primary-700 disabled:opacity-50"
         >
           {isLast ? (
             <>
               <Check size={16} />
-              {createMutation.isPending ? "Enregistrement..." : "Créer la vente"}
+              {mutation.isPending
+                ? "Enregistrement..."
+                : isEditMode
+                  ? "Enregistrer"
+                  : "Créer la vente"}
             </>
           ) : (
             <>
@@ -175,9 +284,9 @@ export default function VenteCreatePage() {
         </button>
       </div>
 
-      {createMutation.isError && (
+      {mutation.isError && (
         <p className="mt-4 text-red-600 text-sm">
-          Erreur lors de la création de la vente.
+          {isEditMode ? "Erreur lors de la mise à jour." : "Erreur lors de la création de la vente."}
         </p>
       )}
     </div>

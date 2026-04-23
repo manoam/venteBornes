@@ -11,7 +11,6 @@ import ModelesPage from "./pages/ModelesPage";
 import ContratsListPage from "./pages/ContratsListPage";
 import ContratDetailPage from "./pages/ContratDetailPage";
 import ContratCreatePage from "./pages/ContratCreatePage";
-import VenteEditPage from "./pages/VenteEditPage";
 import SyncPage from "./pages/SyncPage";
 import ImportPage from "./pages/ImportPage";
 import CouleursPage from "./pages/CouleursPage";
@@ -24,7 +23,7 @@ export default function App() {
         <Route path="/ventes" element={<VentesListPage />} />
         <Route path="/ventes/nouveau" element={<VenteCreatePage />} />
         <Route path="/ventes/:id" element={<VenteDetailPage />} />
-        <Route path="/ventes/:id/modifier" element={<VenteEditPage />} />
+        <Route path="/ventes/:id/modifier" element={<VenteCreatePage />} />
         <Route path="/facturations" element={<FacturationsPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/contrats" element={<ContratsListPage />} />
