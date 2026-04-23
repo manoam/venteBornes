@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Outlet, NavLink, useLocation } from "react-router-dom";
+import keycloak from "../lib/keycloak";
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -104,6 +105,28 @@ export default function Layout() {
             </div>
           )}
         </nav>
+
+        {/* User info + logout */}
+        <div className="p-4 border-t border-gray-700">
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-primary-600 flex items-center justify-center text-white text-xs font-bold">
+              {(keycloak.tokenParsed?.given_name?.[0] ?? keycloak.tokenParsed?.preferred_username?.[0] ?? "U").toUpperCase()}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium text-white truncate">
+                {keycloak.tokenParsed?.given_name
+                  ? `${keycloak.tokenParsed.given_name} ${keycloak.tokenParsed.family_name ?? ""}`
+                  : keycloak.tokenParsed?.preferred_username ?? "Utilisateur"}
+              </p>
+              <button
+                onClick={() => keycloak.logout()}
+                className="text-xs text-gray-400 hover:text-white"
+              >
+                Déconnexion
+              </button>
+            </div>
+          </div>
+        </div>
       </aside>
 
       {/* Main content */}

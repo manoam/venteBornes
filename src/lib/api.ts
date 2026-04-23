@@ -1,10 +1,19 @@
 import axios from "axios";
+import keycloak from "./keycloak";
 
 const API_URL = import.meta.env.VITE_API_URL || "/api";
 
 const api = axios.create({
   baseURL: API_URL,
   headers: { "Content-Type": "application/json" },
+});
+
+// Ajouter le token Keycloak à chaque requête
+api.interceptors.request.use((config) => {
+  if (keycloak.token) {
+    config.headers.Authorization = `Bearer ${keycloak.token}`;
+  }
+  return config;
 });
 
 // ─── Ventes ─────────────────────────────────────────────────
