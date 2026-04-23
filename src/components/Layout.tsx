@@ -1,216 +1,217 @@
-import { useState, useEffect } from "react";
-import { Outlet, NavLink, useLocation } from "react-router-dom";
+import React, { Component, Suspense, useState, useEffect } from "react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   ShoppingCart,
   FileSignature,
   Settings,
-  ChevronDown,
   Tag,
   Layers,
   Package,
   Palette,
   Upload,
   RefreshCw,
-  ChevronsLeft,
-  ChevronsRight,
-  X,
 } from "lucide-react";
-import { clsx } from "clsx";
+import keycloak from "../lib/keycloak";
+import { loadRemoteComponent } from "../remoteLoader";
 import Topbar from "./Topbar";
+import LocalSidebar from "./LocalSidebar";
 
-const navItems = [
-  { to: "/ventes", label: "Ventes", icon: ShoppingCart },
-  { to: "/contrats", label: "Contrats", icon: FileSignature },
-  { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+// Lazy-load remote components from the hub
+const RemoteHeaderBar = React.lazy(() => loadRemoteComponent("./HeaderBar"));
+const RemoteSidebar = React.lazy(() => loadRemoteComponent("./Sidebar"));
+
+// Sidebar sections for this app
+const SIDEBAR_SECTIONS = [
+  {
+    label: "Navigation",
+    items: [
+      { icon: ShoppingCart, label: "Ventes", path: "/ventes" },
+      { icon: FileSignature, label: "Contrats", path: "/contrats" },
+      { icon: LayoutDashboard, label: "Dashboard", path: "/dashboard" },
+    ],
+  },
+  {
+    label: "Configuration",
+    items: [
+      { icon: Tag, label: "Types de vente", path: "/parametres/types-ventes" },
+      { icon: Layers, label: "Gammes", path: "/parametres/gammes" },
+      { icon: Package, label: "Modèles", path: "/parametres/modeles" },
+      { icon: Palette, label: "Couleurs", path: "/parametres/couleurs" },
+      { icon: Upload, label: "Import Excel", path: "/parametres/import" },
+      { icon: RefreshCw, label: "Synchronisation", path: "/parametres/sync" },
+      { icon: Settings, label: "Paramètres", path: "/parametres" },
+    ],
+  },
 ];
 
-const settingsItems = [
-  { to: "/parametres/types-ventes", label: "Types de vente", icon: Tag },
-  { to: "/parametres/gammes", label: "Gammes", icon: Layers },
-  { to: "/parametres/modeles", label: "Modèles", icon: Package },
-  { to: "/parametres/couleurs", label: "Couleurs", icon: Palette },
-  { to: "/parametres/import", label: "Import Excel", icon: Upload },
-  { to: "/parametres/sync", label: "Synchronisation", icon: RefreshCw },
-];
+// Placeholder matching header height
+function HeaderFallback() {
+  return (
+    <div className="h-12 shrink-0 border-b border-[--k-border] bg-gradient-to-r from-white to-blue-50" />
+  );
+}
+
+// Placeholder matching sidebar width
+function SidebarFallback() {
+  return <div className="w-[210px] shrink-0 bg-[--k-sidebar-bg] h-full" />;
+}
+
+// Error boundary for remote components
+interface RemoteErrorBoundaryProps {
+  fallback: React.ReactNode;
+  children: React.ReactNode;
+}
+
+interface RemoteErrorBoundaryState {
+  hasError: boolean;
+}
+
+class RemoteErrorBoundary extends Component<
+  RemoteErrorBoundaryProps,
+  RemoteErrorBoundaryState
+> {
+  constructor(props: RemoteErrorBoundaryProps) {
+    super(props);
+    this.state = { hasError: false };
+  }
+
+  static getDerivedStateFromError(): RemoteErrorBoundaryState {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback;
+    }
+    return this.props.children;
+  }
+}
 
 export default function Layout() {
   const location = useLocation();
-  const isInSettings = location.pathname.startsWith("/parametres");
-  const [settingsOpen, setSettingsOpen] = useState(isInSettings);
-  const [collapsed, setCollapsed] = useState(() => {
-    return localStorage.getItem("k_sidebar_collapsed") === "true";
+  const navigate = useNavigate();
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      return localStorage.getItem("k_sidebar_collapsed") === "1";
+    } catch {
+      return false;
+    }
   });
-  const [mobileOpen, setMobileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
-    localStorage.setItem("k_sidebar_collapsed", String(collapsed));
-  }, [collapsed]);
+    try {
+      localStorage.setItem(
+        "k_sidebar_collapsed",
+        sidebarCollapsed ? "1" : "0"
+      );
+    } catch {
+      // ignore
+    }
+  }, [sidebarCollapsed]);
 
   // Close mobile menu on navigation
   useEffect(() => {
-    setMobileOpen(false);
+    setMobileMenuOpen(false);
   }, [location.pathname]);
 
-  const sidebarContent = (isMobile: boolean) => (
-    <>
-      {/* Menu items */}
-      <nav className="flex-1 overflow-y-auto py-2 px-2">
-        {/* Section label */}
-        {!collapsed && (
-          <p className="px-3 pt-3 pb-1 text-[10px] uppercase tracking-widest text-[var(--k-sidebar-section)]">
-            Navigation
-          </p>
-        )}
+  // Map keycloak user to remote header user shape
+  const headerUser = keycloak.tokenParsed
+    ? {
+        firstName:
+          keycloak.tokenParsed.given_name ??
+          keycloak.tokenParsed.preferred_username ??
+          "",
+        lastName: keycloak.tokenParsed.family_name ?? "",
+        email: keycloak.tokenParsed.email ?? "",
+        username: keycloak.tokenParsed.preferred_username ?? "",
+      }
+    : null;
 
-        {navItems.map(({ to, label, icon: Icon }) => (
-          <NavLink
-            key={to}
-            to={to}
-            className={({ isActive }) =>
-              clsx(
-                "group flex items-center gap-3 rounded-lg text-sm transition-colors relative",
-                collapsed && !isMobile ? "justify-center px-0 py-2.5 mx-auto w-10 h-10" : "px-3 py-2 my-0.5",
-                isActive
-                  ? "bg-white/10 text-[var(--k-sidebar-text-active)]"
-                  : "text-[var(--k-sidebar-text)] hover:bg-white/[0.06] hover:text-[var(--k-sidebar-text-active)]"
-              )
-            }
-          >
-            {({ isActive }) => (
-              <>
-                {isActive && !collapsed && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 w-[3px] h-4 bg-white rounded-r" />
-                )}
-                <Icon size={18} className="flex-shrink-0" />
-                {(!collapsed || isMobile) && <span className="font-medium">{label}</span>}
-                {collapsed && !isMobile && (
-                  <span className="absolute left-full ml-2 px-2 py-1 text-xs font-medium bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-                    {label}
-                  </span>
-                )}
-              </>
-            )}
-          </NavLink>
-        ))}
+  const handleNavigate = (path: string) => {
+    navigate(path);
+  };
 
-        {/* Section Paramètres */}
-        {!collapsed && (
-          <p className="px-3 pt-5 pb-1 text-[10px] uppercase tracking-widest text-[var(--k-sidebar-section)]">
-            Configuration
-          </p>
-        )}
+  const handleLogout = () => {
+    keycloak.logout();
+  };
 
-        <button
-          onClick={() => setSettingsOpen((o) => !o)}
-          className={clsx(
-            "w-full group flex items-center gap-3 rounded-lg text-sm transition-colors",
-            collapsed && !isMobile ? "justify-center px-0 py-2.5 mx-auto w-10 h-10" : "px-3 py-2 my-0.5",
-            isInSettings
-              ? "bg-white/10 text-[var(--k-sidebar-text-active)]"
-              : "text-[var(--k-sidebar-text)] hover:bg-white/[0.06] hover:text-[var(--k-sidebar-text-active)]"
-          )}
-        >
-          <Settings size={18} className="flex-shrink-0" />
-          {(!collapsed || isMobile) && (
-            <>
-              <span className="flex-1 text-left font-medium">Paramètres</span>
-              <ChevronDown
-                size={14}
-                className={clsx("transition-transform", settingsOpen && "rotate-180")}
-              />
-            </>
-          )}
-          {collapsed && !isMobile && (
-            <span className="absolute left-full ml-2 px-2 py-1 text-xs font-medium bg-gray-900 text-white rounded opacity-0 group-hover:opacity-100 pointer-events-none whitespace-nowrap z-50 transition-opacity">
-              Paramètres
-            </span>
-          )}
-        </button>
+  // Local fallback components
+  const localTopbar = (
+    <Topbar onMobileMenuToggle={() => setMobileMenuOpen((v) => !v)} />
+  );
 
-        {settingsOpen && (!collapsed || isMobile) && (
-          <div className="ml-2 space-y-0.5">
-            {settingsItems.map(({ to, label, icon: Icon }) => (
-              <NavLink
-                key={to}
-                to={to}
-                className={({ isActive }) =>
-                  clsx(
-                    "flex items-center gap-3 px-3 py-1.5 rounded-lg text-[13px] transition-colors",
-                    isActive
-                      ? "bg-white/10 text-[var(--k-sidebar-text-active)]"
-                      : "text-[var(--k-sidebar-text)] hover:bg-white/[0.06] hover:text-[var(--k-sidebar-text-active)]"
-                  )
-                }
-              >
-                <Icon size={15} className="flex-shrink-0" />
-                {label}
-              </NavLink>
-            ))}
-          </div>
-        )}
-      </nav>
+  const localSidebar = (
+    <LocalSidebar
+      collapsed={sidebarCollapsed}
+      onToggle={() => setSidebarCollapsed((v) => !v)}
+    />
+  );
 
-      {/* Bottom: collapse toggle (desktop only) */}
-      {!isMobile && (
-        <div className="border-t border-[var(--k-sidebar-border)] p-2">
-          <button
-            onClick={() => setCollapsed((c) => !c)}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-[var(--k-sidebar-text)] hover:bg-white/[0.06] hover:text-[var(--k-sidebar-text-active)] transition-colors text-sm"
-          >
-            {collapsed ? <ChevronsRight size={16} /> : <ChevronsLeft size={16} />}
-            {!collapsed && <span>Réduire</span>}
-          </button>
-        </div>
-      )}
-    </>
+  const localMobileSidebar = (
+    <LocalSidebar collapsed={false} onToggle={() => setMobileMenuOpen(false)} />
   );
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Topbar */}
-      <Topbar onMobileMenuToggle={() => setMobileOpen((o) => !o)} />
+    <div className="h-screen flex flex-col bg-[--k-bg]">
+      {/* Header — remote with local fallback */}
+      <RemoteErrorBoundary fallback={localTopbar}>
+        <Suspense fallback={<HeaderFallback />}>
+          <RemoteHeaderBar
+            user={headerUser}
+            onLogout={handleLogout}
+            currentAppName="Ventes & Contrats"
+            onNavigate={handleNavigate}
+          />
+        </Suspense>
+      </RemoteErrorBoundary>
 
       <div className="flex flex-1 min-h-0">
-        {/* Desktop sidebar */}
-        <aside
-          className="hidden md:flex flex-col sticky top-[var(--k-topbar-h)] bg-[var(--k-sidebar-bg)] transition-all duration-200"
-          style={{
-            width: collapsed ? "var(--k-sidebar-rail)" : "var(--k-sidebar-w)",
-            height: "calc(100vh - var(--k-topbar-h))",
-          }}
-        >
-          {sidebarContent(false)}
-        </aside>
+        {/* Desktop sidebar — remote with local fallback */}
+        <div className="hidden md:block">
+          <RemoteErrorBoundary fallback={localSidebar}>
+            <Suspense fallback={<SidebarFallback />}>
+              <RemoteSidebar
+                sections={SIDEBAR_SECTIONS}
+                activePath={location.pathname}
+                onNavigate={handleNavigate}
+                collapsed={sidebarCollapsed}
+                onCollapse={() => setSidebarCollapsed((v) => !v)}
+                onHelpClick={() => {}}
+              />
+            </Suspense>
+          </RemoteErrorBoundary>
+        </div>
 
-        {/* Mobile overlay */}
-        {mobileOpen && (
+        {/* Mobile sidebar overlay */}
+        {mobileMenuOpen && (
           <>
             <div
-              className="fixed inset-0 top-[var(--k-topbar-h)] bg-black/30 z-30 md:hidden"
-              onClick={() => setMobileOpen(false)}
+              className="fixed inset-0 z-30 bg-black/30 md:hidden"
+              onClick={() => setMobileMenuOpen(false)}
             />
-            <aside
-              className="fixed left-0 top-[var(--k-topbar-h)] bottom-0 w-[var(--k-sidebar-w)] bg-[var(--k-sidebar-bg)] z-40 md:hidden flex flex-col"
-            >
-              <div className="flex justify-end p-2">
-                <button
-                  onClick={() => setMobileOpen(false)}
-                  className="w-8 h-8 flex items-center justify-center rounded-lg text-[var(--k-sidebar-text)] hover:bg-white/10"
-                >
-                  <X size={16} />
-                </button>
-              </div>
-              {sidebarContent(true)}
-            </aside>
+            <div className="fixed left-0 top-12 z-40 h-[calc(100vh-48px)] md:hidden">
+              <RemoteErrorBoundary fallback={localMobileSidebar}>
+                <Suspense fallback={<SidebarFallback />}>
+                  <RemoteSidebar
+                    sections={SIDEBAR_SECTIONS}
+                    activePath={location.pathname}
+                    onNavigate={handleNavigate}
+                    collapsed={false}
+                    onCollapse={() => setMobileMenuOpen(false)}
+                    onHelpClick={() => {}}
+                  />
+                </Suspense>
+              </RemoteErrorBoundary>
+            </div>
           </>
         )}
 
         {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
-          <div className="p-3 md:p-5">
-            <Outlet />
-          </div>
+        <main className="flex-1 min-w-0 overflow-y-auto p-3 md:p-5">
+          <Outlet />
         </main>
       </div>
     </div>
