@@ -344,29 +344,31 @@ export default function VenteDetailPage() {
             )}
 
             {/* Dates livraison */}
-            <div className="pt-2 border-t space-y-1">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Date souhaitée</span>
-                <span className="font-medium">{livraisonTypeDateLabels[vente.livraisonTypeDate] ?? vente.livraisonTypeDate}</span>
+            <div className="pt-3 border-t">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <span className="text-xs text-gray-500">Date souhaitée</span>
+                  <p className="text-sm font-medium">{livraisonTypeDateLabels[vente.livraisonTypeDate] ?? vente.livraisonTypeDate}</p>
+                </div>
+                {vente.livraisonDate && (
+                  <div>
+                    <span className="text-xs text-gray-500">Date précise</span>
+                    <p className="text-sm font-medium">{new Date(vente.livraisonDate).toLocaleDateString("fr-FR")}</p>
+                  </div>
+                )}
+                {vente.livraisonDateFirstUsage && (
+                  <div>
+                    <span className="text-xs text-gray-500">1ère utilisation</span>
+                    <p className="text-sm font-medium">{new Date(vente.livraisonDateFirstUsage).toLocaleDateString("fr-FR")}</p>
+                  </div>
+                )}
+                {vente.livraisonInfosSup && (
+                  <div className="col-span-2">
+                    <span className="text-xs text-gray-500">Infos supplémentaires</span>
+                    <p className="text-sm">{vente.livraisonInfosSup}</p>
+                  </div>
+                )}
               </div>
-              {vente.livraisonDate && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">Date précise</span>
-                  <span className="font-medium">{new Date(vente.livraisonDate).toLocaleDateString("fr-FR")}</span>
-                </div>
-              )}
-              {vente.livraisonDateFirstUsage && (
-                <div className="flex justify-between text-sm">
-                  <span className="text-gray-500">1ère utilisation</span>
-                  <span className="font-medium">{new Date(vente.livraisonDateFirstUsage).toLocaleDateString("fr-FR")}</span>
-                </div>
-              )}
-              {vente.livraisonInfosSup && (
-                <div className="pt-1">
-                  <p className="text-xs text-gray-500">Infos supplémentaires</p>
-                  <p className="text-sm">{vente.livraisonInfosSup}</p>
-                </div>
-              )}
             </div>
           </div>
         </RecapCard>
