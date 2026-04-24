@@ -1,7 +1,7 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Pencil } from "lucide-react";
-import { ventesApi } from "../lib/api";
+import { ArrowLeft, Pencil, Mail, Phone, MapPin } from "lucide-react";
+import { ventesApi, referenceApi } from "../lib/api";
 import StatusBadge from "../components/StatusBadge";
 
 const colorMap: Record<string, { border: string; bg: string; title: string }> = {
@@ -28,6 +28,11 @@ export default function VenteDetailPage() {
     queryKey: ["vente", id],
     queryFn: () => ventesApi.get(Number(id)),
     enabled: !!id,
+  });
+
+  const { data: typesVentes = [] } = useQuery({
+    queryKey: ["types-ventes"],
+    queryFn: referenceApi.typesVentes,
   });
 
   if (isLoading) {
@@ -107,7 +112,13 @@ export default function VenteDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Vente */}
         <RecapCard title="Vente" color="blue">
-          <RecapField label="Type de vente" value={vente.typeVente} />
+          <RecapField
+            label="Type de vente"
+            value={
+              typesVentes.find((t: any) => t.code === vente.typeVente)?.label ??
+              vente.typeVente
+            }
+          />
           <RecapField label="Nombre de mois" value={vente.nbMois ? `${vente.nbMois} mois` : undefined} />
           <RecapField
             label="Période"
@@ -131,23 +142,55 @@ export default function VenteDetailPage() {
           )}
         </RecapCard>
 
-        {/* Client */}
+        {/* Client — carte de visite */}
         <RecapCard title="Client" color="green">
-          <RecapField label="Nom" value={vente.client?.nom ?? vente.clientNom} highlight />
-          {vente.clientType !== "corporation" && (
-            <RecapField label="Prénom" value={vente.client?.prenom ?? vente.clientPrenom} />
-          )}
-          <RecapField label="Email" value={vente.client?.email ?? vente.clientEmail} />
-          <RecapField label="Téléphone" value={vente.clientTelephone} />
-          <RecapField
-            label="Adresse"
-            value={[vente.clientAdresse, vente.clientCp, vente.clientVille, vente.clientPays].filter(Boolean).join(", ")}
-          />
-          {vente.isAgence && (
-            <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
-              <span className="text-yellow-700 font-medium">Agence pour :</span> {vente.proprietaire}
-            </div>
-          )}
+          <div className="space-y-3">
+            {/* Nom principal */}
+            <p className="text-lg font-bold text-gray-900">
+              {vente.client?.nom ?? vente.clientNom}
+              {vente.clientType !== "corporation" && (vente.client?.prenom ?? vente.clientPrenom) && (
+                <span className="font-normal"> {vente.client?.prenom ?? vente.clientPrenom}</span>
+              )}
+            </p>
+
+            {/* Contact */}
+            {(vente.client?.email ?? vente.clientEmail) && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Mail size={14} className="text-gray-400" />
+                <a href={`mailto:${vente.client?.email ?? vente.clientEmail}`} className="hover:text-primary-600">
+                  {vente.client?.email ?? vente.clientEmail}
+                </a>
+              </div>
+            )}
+            {vente.clientTelephone && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <Phone size={14} className="text-gray-400" />
+                <a href={`tel:${vente.clientTelephone}`} className="hover:text-primary-600">
+                  {vente.clientTelephone}
+                </a>
+              </div>
+            )}
+
+            {/* Adresse */}
+            {(vente.clientAdresse || vente.clientVille) && (
+              <div className="flex items-start gap-2 text-sm text-gray-600">
+                <MapPin size={14} className="text-gray-400 mt-0.5" />
+                <div>
+                  {vente.clientAdresse && <p>{vente.clientAdresse}</p>}
+                  <p>
+                    {[vente.clientCp, vente.clientVille].filter(Boolean).join(" ")}
+                    {vente.clientPays && vente.clientPays !== "France" && `, ${vente.clientPays}`}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {vente.isAgence && (
+              <div className="mt-2 p-2 bg-yellow-50 border border-yellow-200 rounded text-sm">
+                <span className="text-yellow-700 font-medium">Agence pour :</span> {vente.proprietaire}
+              </div>
+            )}
+          </div>
         </RecapCard>
       </div>
 

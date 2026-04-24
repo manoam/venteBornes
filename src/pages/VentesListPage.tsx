@@ -126,8 +126,13 @@ export default function VentesListPage() {
             ) : (
               ventes.map((vente: any) => (
                 <tr key={vente.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 font-medium text-primary-600">
-                    {vente.numero}
+                  <td className="px-6 py-4">
+                    <Link
+                      to={`/ventes/${vente.id}`}
+                      className="font-medium text-primary-600 hover:text-primary-800 hover:underline"
+                    >
+                      {vente.numero}
+                    </Link>
                   </td>
                   <td className="px-6 py-4">
                     {vente.client
