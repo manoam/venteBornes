@@ -259,70 +259,118 @@ export default function VenteDetailPage() {
         </RecapCard>
       )}
 
-      {/* ── Config Créa ─────────────────────────────── */}
-      {(vente.isContactCreaDifferent || vente.configCreaNote) && (
-        <RecapCard title="Config Créa" color="indigo" className="mb-6">
-          {vente.isContactCreaDifferent && (
-            <div className="grid grid-cols-2 gap-4">
-              <RecapField
-                label="Contact"
-                value={[vente.contactCreaFullname, vente.contactCreaLastname].filter(Boolean).join(" ")}
-              />
-              <RecapField label="Fonction" value={vente.contactCreaFonction} />
-              <RecapField label="Email" value={vente.contactCreaEmail} />
-              <RecapField label="Tél." value={vente.contactCreaTelMobile} />
+      {/* ── Config Créa & Livraison ─────────────────── */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Config Créa */}
+        {(vente.isContactCreaDifferent || vente.configCreaNote) && (
+          <RecapCard title="Contact Créa" color="indigo">
+            <div className="space-y-3">
+              {vente.isContactCreaDifferent && (
+                <>
+                  <p className="text-lg font-bold text-gray-900">
+                    {[vente.contactCreaFullname, vente.contactCreaLastname].filter(Boolean).join(" ")}
+                  </p>
+                  {vente.contactCreaFonction && (
+                    <p className="text-sm text-gray-500 -mt-2">{vente.contactCreaFonction}</p>
+                  )}
+                  {vente.contactCreaEmail && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Mail size={14} className="text-gray-400" />
+                      <a href={`mailto:${vente.contactCreaEmail}`} className="hover:text-primary-600">
+                        {vente.contactCreaEmail}
+                      </a>
+                    </div>
+                  )}
+                  {(vente.contactCreaTelMobile || vente.contactCreaTelFixe) && (
+                    <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <Phone size={14} className="text-gray-400" />
+                      <span>{vente.contactCreaTelMobile ?? vente.contactCreaTelFixe}</span>
+                    </div>
+                  )}
+                </>
+              )}
+              {vente.configCreaNote && (
+                <div className="pt-2 border-t">
+                  <p className="text-xs text-gray-500 mb-1">Note de configuration</p>
+                  <p className="text-sm bg-indigo-50 rounded p-2">{vente.configCreaNote}</p>
+                </div>
+              )}
             </div>
-          )}
-          {vente.configCreaNote && (
-            <div className="pt-2">
-              <span className="text-xs text-gray-500">Note de configuration</span>
-              <p className="text-sm mt-1 bg-indigo-50 rounded p-2">{vente.configCreaNote}</p>
-            </div>
-          )}
-        </RecapCard>
-      )}
+          </RecapCard>
+        )}
 
-      {/* ── Livraison ───────────────────────────────── */}
-      <RecapCard title="Livraison" color="teal" className="mb-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="space-y-2">
+        {/* Livraison */}
+        <RecapCard title="Contact Livraison" color="teal">
+          <div className="space-y-3">
             {vente.isLivraisonDifferent && (
               <>
-                <RecapField
-                  label="Contact livraison"
-                  value={[vente.livraisonContactFullname, vente.livraisonContactLastname].filter(Boolean).join(" ")}
-                  highlight
-                />
-                <RecapField label="Fonction" value={vente.livraisonContactFonction} />
-                <RecapField label="Email" value={vente.livraisonContactEmail} />
-                <RecapField label="Tél." value={vente.livraisonContactTelMobile} />
+                <p className="text-lg font-bold text-gray-900">
+                  {[vente.livraisonContactFullname, vente.livraisonContactLastname].filter(Boolean).join(" ")}
+                </p>
+                {vente.livraisonContactFonction && (
+                  <p className="text-sm text-gray-500 -mt-2">{vente.livraisonContactFonction}</p>
+                )}
+                {vente.livraisonContactEmail && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Mail size={14} className="text-gray-400" />
+                    <a href={`mailto:${vente.livraisonContactEmail}`} className="hover:text-primary-600">
+                      {vente.livraisonContactEmail}
+                    </a>
+                  </div>
+                )}
+                {(vente.livraisonContactTelMobile || vente.livraisonContactTelFixe) && (
+                  <div className="flex items-center gap-2 text-sm text-gray-600">
+                    <Phone size={14} className="text-gray-400" />
+                    <span>{vente.livraisonContactTelMobile ?? vente.livraisonContactTelFixe}</span>
+                  </div>
+                )}
               </>
             )}
+
             {vente.isLivraisonAdresseDiff && (
-              <RecapField
-                label="Adresse livraison"
-                value={[vente.livraisonAdresse, vente.livraisonAdresseComp, vente.livraisonCp, vente.livraisonVille, vente.livraisonPays].filter(Boolean).join(", ")}
-              />
+              <div className="flex items-start gap-2 text-sm text-gray-600">
+                <MapPin size={14} className="text-gray-400 mt-0.5" />
+                <div>
+                  {vente.livraisonAdresse && <p>{vente.livraisonAdresse}</p>}
+                  {vente.livraisonAdresseComp && <p>{vente.livraisonAdresseComp}</p>}
+                  <p>{[vente.livraisonCp, vente.livraisonVille].filter(Boolean).join(" ")}</p>
+                  {vente.livraisonPays && vente.livraisonPays !== "France" && <p>{vente.livraisonPays}</p>}
+                </div>
+              </div>
             )}
-            <RecapField label="Commentaire" value={vente.livraisonContactNote} />
+
+            {vente.livraisonContactNote && (
+              <p className="text-sm text-gray-600 italic">"{vente.livraisonContactNote}"</p>
+            )}
+
+            {/* Dates livraison */}
+            <div className="pt-2 border-t space-y-1">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Date souhaitée</span>
+                <span className="font-medium">{livraisonTypeDateLabels[vente.livraisonTypeDate] ?? vente.livraisonTypeDate}</span>
+              </div>
+              {vente.livraisonDate && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">Date précise</span>
+                  <span className="font-medium">{new Date(vente.livraisonDate).toLocaleDateString("fr-FR")}</span>
+                </div>
+              )}
+              {vente.livraisonDateFirstUsage && (
+                <div className="flex justify-between text-sm">
+                  <span className="text-gray-500">1ère utilisation</span>
+                  <span className="font-medium">{new Date(vente.livraisonDateFirstUsage).toLocaleDateString("fr-FR")}</span>
+                </div>
+              )}
+              {vente.livraisonInfosSup && (
+                <div className="pt-1">
+                  <p className="text-xs text-gray-500">Infos supplémentaires</p>
+                  <p className="text-sm">{vente.livraisonInfosSup}</p>
+                </div>
+              )}
+            </div>
           </div>
-          <div className="space-y-2">
-            <RecapField
-              label="Date souhaitée"
-              value={livraisonTypeDateLabels[vente.livraisonTypeDate] ?? vente.livraisonTypeDate}
-            />
-            <RecapField
-              label="Date précise"
-              value={vente.livraisonDate ? new Date(vente.livraisonDate).toLocaleDateString("fr-FR") : undefined}
-            />
-            <RecapField
-              label="1ère utilisation borne"
-              value={vente.livraisonDateFirstUsage ? new Date(vente.livraisonDateFirstUsage).toLocaleDateString("fr-FR") : undefined}
-            />
-            <RecapField label="Infos supplémentaires" value={vente.livraisonInfosSup} />
-          </div>
-        </div>
-      </RecapCard>
+        </RecapCard>
+      </div>
 
       {/* ── Contrat lié ─────────────────────────────── */}
       {vente.contrat && (
