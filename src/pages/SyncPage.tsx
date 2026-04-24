@@ -19,6 +19,7 @@ const TABLES = [
   { key: "gammes", label: "Gammes de bornes", fn: syncApi.gammes },
   { key: "modeles", label: "Modèles de bornes", fn: syncApi.modeles },
   { key: "couleurs", label: "Couleurs", fn: syncApi.couleurs },
+  { key: "consommables", label: "Consommables", fn: syncApi.consommables },
   { key: "typeEquipements", label: "Types d'équipements", fn: syncApi.typeEquipements },
   { key: "equipements", label: "Équipements", fn: syncApi.equipements },
   { key: "users", label: "Commerciaux", fn: syncApi.users },

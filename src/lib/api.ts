@@ -102,6 +102,7 @@ export const syncApi = {
   gammes: () => api.post("/sync/gammes").then((r) => r.data),
   modeles: () => api.post("/sync/modeles").then((r) => r.data),
   couleurs: () => api.post("/sync/couleurs").then((r) => r.data),
+  consommables: () => api.post("/sync/consommables").then((r) => r.data),
   typeEquipements: () => api.post("/sync/type-equipements").then((r) => r.data),
   equipements: () => api.post("/sync/equipements").then((r) => r.data),
   users: () => api.post("/sync/users").then((r) => r.data),
