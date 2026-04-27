@@ -1,6 +1,6 @@
 import { useParams, Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, Pencil, Mail, Phone, MapPin } from "lucide-react";
+import { ArrowLeft, Pencil, Mail, Phone, MapPin, ExternalLink } from "lucide-react";
 import { ventesApi, referenceApi } from "../lib/api";
 import StatusBadge from "../components/StatusBadge";
 
@@ -145,13 +145,27 @@ export default function VenteDetailPage() {
         {/* Client — carte de visite */}
         <RecapCard title="Client" color="green">
           <div className="space-y-3">
-            {/* Nom principal */}
-            <p className="text-lg font-bold text-gray-900">
-              {vente.client?.nom ?? vente.clientNom}
-              {vente.clientType !== "corporation" && (vente.client?.prenom ?? vente.clientPrenom) && (
-                <span className="font-normal"> {vente.client?.prenom ?? vente.clientPrenom}</span>
+            {/* Nom principal + lien CRM */}
+            <div className="flex items-start justify-between gap-2">
+              <p className="text-lg font-bold text-gray-900">
+                {vente.client?.nom ?? vente.clientNom}
+                {vente.clientType !== "corporation" && (vente.client?.prenom ?? vente.clientPrenom) && (
+                  <span className="font-normal"> {vente.client?.prenom ?? vente.clientPrenom}</span>
+                )}
+              </p>
+              {vente.client?.crmId && (
+                <a
+                  href={`${import.meta.env.VITE_CRM_URL || "https://crmdev.konitys.fr"}/fr/clients/view/${vente.client.crmId}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800 hover:underline whitespace-nowrap"
+                  title="Voir dans le CRM"
+                >
+                  <ExternalLink size={12} />
+                  CRM
+                </a>
               )}
-            </p>
+            </div>
 
             {/* Contact */}
             {(vente.client?.email ?? vente.clientEmail) && (

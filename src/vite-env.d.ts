@@ -7,6 +7,7 @@ interface ImportMetaEnv {
   readonly VITE_KEYCLOAK_CLIENT_ID: string;
   readonly VITE_GOOGLE_MAPS_KEY: string;
   readonly VITE_PLATEFORM_URL: string;
+  readonly VITE_CRM_URL: string;
 }
 
 interface ImportMeta {
