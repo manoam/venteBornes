@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Search, Eye, Plus } from "lucide-react";
+import { Search, Eye, Plus, ExternalLink } from "lucide-react";
 import { contratsApi } from "../lib/api";
 
 const TABS = [
@@ -198,7 +198,21 @@ export default function ContratsListPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-sm">
-                    <div>{c.clientCrm ?? "—"}</div>
+                    <div className="flex items-center gap-1.5">
+                      <span>{c.clientCrm ?? "—"}</span>
+                      {c.vente?.client?.crmId && (
+                        <a
+                          href={`${import.meta.env.VITE_CRM_URL}/fr/clients/fiche/${c.vente.client.crmId}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-primary-500 hover:text-primary-700"
+                          title="Voir la fiche CRM"
+                        >
+                          <ExternalLink size={12} />
+                        </a>
+                      )}
+                    </div>
                     {c.clientPartenaire && c.clientPartenaire !== c.clientCrm && (
                       <div className="text-xs text-gray-400">
                         {c.clientPartenaire}

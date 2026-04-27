@@ -11,6 +11,7 @@ import {
   Calendar,
   Monitor,
   MessageSquare,
+  ExternalLink,
 } from "lucide-react";
 import { contratsApi } from "../lib/api";
 
@@ -207,7 +208,28 @@ export default function ContratDetailPage() {
             accentColor={tc.accent}
           >
             <div className="grid grid-cols-2 gap-x-8 gap-y-3">
-              <DetailField label="Client CRM" value={contrat.clientCrm} large />
+              <div>
+                <span className="text-xs text-gray-500 uppercase tracking-wide">
+                  Client CRM
+                </span>
+                <div className="mt-0.5 flex items-center gap-2">
+                  <p className="text-base font-semibold text-gray-900">
+                    {contrat.clientCrm ?? "—"}
+                  </p>
+                  {contrat.vente?.client?.crmId && (
+                    <a
+                      href={`${import.meta.env.VITE_CRM_URL}/fr/clients/fiche/${contrat.vente.client.crmId}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-1 text-xs text-primary-600 hover:text-primary-800"
+                      title="Voir la fiche dans le CRM"
+                    >
+                      <ExternalLink size={12} />
+                      CRM
+                    </a>
+                  )}
+                </div>
+              </div>
               <DetailField
                 label="Client partenaire"
                 value={contrat.clientPartenaire}
