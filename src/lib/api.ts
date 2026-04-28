@@ -58,6 +58,9 @@ export const clientsApi = {
 
   getFromCrm: (crmId: number) =>
     api.get(`/clients/crm/${crmId}`).then((r) => r.data),
+
+  getDevisFromCrm: (crmId: number) =>
+    api.get(`/clients/crm/${crmId}/devis`).then((r) => r.data),
 };
 
 // ─── Users ──────────────────────────────────────────────────

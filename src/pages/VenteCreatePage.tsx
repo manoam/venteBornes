@@ -75,6 +75,7 @@ function venteToForm(vente: any): Record<string, any> {
     livraisonDate: vente.livraisonDate ?? undefined,
     livraisonDateFirstUsage: vente.livraisonDateFirstUsage ?? undefined,
     livraisonInfosSup: vente.livraisonInfosSup ?? undefined,
+    devisRefIds: (vente.venteDevis ?? []).map((vd: any) => vd.devisRefId),
     // Équipements — mapper depuis la relation vers le format du formulaire
     equipementVentes: (vente.equipementVentes ?? []).reduce(
       (acc: Record<number, any>, ev: any) => {
@@ -694,54 +695,128 @@ function StepClient({
         )}
       </div>
 
-      {/* ── Section Devis (upload) ────────────────────────── */}
-      <div>
-        <h2 className="text-lg font-semibold mb-4">Documents devis</h2>
-        <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-          <input
-            type="file"
-            multiple
-            accept=".pdf,.doc,.docx,.png,.jpg,.jpeg"
-            onChange={(e) => {
-              const files = Array.from(e.target.files ?? []);
-              update({ devisFiles: [...(form.devisFiles ?? []), ...files] });
-            }}
-            className="hidden"
-            id="devis-upload"
-          />
-          <label
-            htmlFor="devis-upload"
-            className="cursor-pointer text-primary-600 hover:text-primary-800 font-medium"
-          >
-            Cliquez pour ajouter des fichiers
-          </label>
-          <p className="text-xs text-gray-400 mt-1">
-            PDF, DOC, DOCX, PNG, JPG (max 100 fichiers)
-          </p>
-          {form.devisFiles?.length > 0 && (
-            <div className="mt-3 space-y-1">
-              {form.devisFiles.map((f: File, i: number) => (
-                <div
-                  key={i}
-                  className="flex items-center justify-between bg-gray-50 rounded px-3 py-1 text-sm"
-                >
-                  <span className="truncate">{f.name}</span>
-                  <button
-                    onClick={() => {
-                      const files = [...form.devisFiles];
-                      files.splice(i, 1);
-                      update({ devisFiles: files });
-                    }}
-                    className="text-red-500 hover:text-red-700 ml-2 text-xs"
+      {/* ── Section Devis (liste CRM) ─────────────────────── */}
+      <DevisSection form={form} update={update} />
+    </div>
+  );
+}
+
+function DevisSection({
+  form,
+  update,
+}: {
+  form: Record<string, any>;
+  update: (f: Record<string, any>) => void;
+}) {
+  const crmClientId = form.crmClientId;
+  const selected: number[] = form.devisRefIds ?? [];
+
+  const { data: devis, isLoading } = useQuery({
+    queryKey: ["client-devis", crmClientId],
+    queryFn: () => clientsApi.getDevisFromCrm(Number(crmClientId)),
+    enabled: !!crmClientId,
+  });
+
+  const toggle = (id: number) => {
+    const set = new Set(selected);
+    if (set.has(id)) set.delete(id);
+    else set.add(id);
+    update({ devisRefIds: Array.from(set) });
+  };
+
+  const statusLabel: Record<string, { label: string; className: string }> = {
+    draft: { label: "Brouillon", className: "bg-gray-100 text-gray-700" },
+    sent: { label: "Envoyé", className: "bg-blue-100 text-blue-700" },
+    accepted: { label: "Accepté", className: "bg-green-100 text-green-700" },
+    refused: { label: "Refusé", className: "bg-red-100 text-red-700" },
+    cancelled: { label: "Annulé", className: "bg-gray-100 text-gray-500" },
+  };
+
+  return (
+    <div>
+      <h2 className="text-lg font-semibold mb-4">Devis du client</h2>
+      {!crmClientId ? (
+        <p className="text-sm text-gray-500 italic">
+          Sélectionnez d'abord un client pour voir ses devis.
+        </p>
+      ) : isLoading ? (
+        <p className="text-sm text-gray-500">Chargement des devis…</p>
+      ) : !devis || devis.length === 0 ? (
+        <p className="text-sm text-gray-500 italic">
+          Aucun devis trouvé pour ce client.
+        </p>
+      ) : (
+        <div className="border rounded-lg overflow-hidden">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 text-xs text-gray-500 uppercase">
+              <tr>
+                <th className="px-3 py-2 w-10"></th>
+                <th className="text-left px-3 py-2">N°</th>
+                <th className="text-left px-3 py-2">Date</th>
+                <th className="text-right px-3 py-2">HT</th>
+                <th className="text-right px-3 py-2">TTC</th>
+                <th className="text-left px-3 py-2">Statut</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y">
+              {devis.map((d: any) => {
+                const isSelected = selected.includes(d.id);
+                const st = statusLabel[d.status] ?? {
+                  label: d.status ?? "—",
+                  className: "bg-gray-100 text-gray-700",
+                };
+                return (
+                  <tr
+                    key={d.id}
+                    className={`cursor-pointer hover:bg-gray-50 ${
+                      isSelected ? "bg-primary-50" : ""
+                    }`}
+                    onClick={() => toggle(d.id)}
                   >
-                    Supprimer
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
+                    <td className="px-3 py-2">
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => toggle(d.id)}
+                        onClick={(e) => e.stopPropagation()}
+                        className="rounded"
+                      />
+                    </td>
+                    <td className="px-3 py-2 font-medium">{d.indent ?? "—"}</td>
+                    <td className="px-3 py-2 text-gray-600">
+                      {d.dateCrea
+                        ? new Date(d.dateCrea).toLocaleDateString("fr-FR")
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {d.totalHt
+                        ? `${Number(d.totalHt).toLocaleString("fr-FR")} €`
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2 text-right">
+                      {d.totalTtc
+                        ? `${Number(d.totalTtc).toLocaleString("fr-FR")} €`
+                        : "—"}
+                    </td>
+                    <td className="px-3 py-2">
+                      <span
+                        className={`inline-block px-2 py-0.5 rounded text-xs ${st.className}`}
+                      >
+                        {st.label}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
         </div>
-      </div>
+      )}
+      {selected.length > 0 && (
+        <p className="text-xs text-gray-500 mt-2">
+          {selected.length} devis sélectionné{selected.length > 1 ? "s" : ""}
+        </p>
+      )}
     </div>
   );
 }
@@ -1698,20 +1773,47 @@ function StepRecap({ form }: { form: Record<string, any> }) {
         </div>
       </RecapCard>
 
-      {/* Documents */}
-      {form.devisFiles?.length > 0 && (
-        <RecapCard title="Documents devis" color="gray">
-          <div className="space-y-1">
-            {form.devisFiles.map((f: File, i: number) => (
-              <div key={i} className="flex items-center gap-2 text-sm">
-                <span className="w-2 h-2 rounded-full bg-gray-400" />
-                <span>{f.name}</span>
-              </div>
-            ))}
-          </div>
-        </RecapCard>
+      {/* Devis sélectionnés */}
+      {form.devisRefIds?.length > 0 && (
+        <RecapDevisCard form={form} />
       )}
     </div>
+  );
+}
+
+function RecapDevisCard({ form }: { form: Record<string, any> }) {
+  const { data: devis } = useQuery({
+    queryKey: ["client-devis", form.crmClientId],
+    queryFn: () => clientsApi.getDevisFromCrm(Number(form.crmClientId)),
+    enabled: !!form.crmClientId,
+  });
+
+  const ids: number[] = form.devisRefIds ?? [];
+  const selected = (devis ?? []).filter((d: any) => ids.includes(d.id));
+
+  if (selected.length === 0) return null;
+
+  return (
+    <RecapCard title="Devis liés" color="gray">
+      <div className="space-y-1 text-sm">
+        {selected.map((d: any) => (
+          <div key={d.id} className="flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-gray-400" />
+            <span className="font-medium">{d.indent ?? `Devis #${d.id}`}</span>
+            {d.dateCrea && (
+              <span className="text-gray-500 text-xs">
+                · {new Date(d.dateCrea).toLocaleDateString("fr-FR")}
+              </span>
+            )}
+            {d.totalTtc && (
+              <span className="text-gray-700 text-xs">
+                · {Number(d.totalTtc).toLocaleString("fr-FR")} €
+              </span>
+            )}
+          </div>
+        ))}
+      </div>
+    </RecapCard>
   );
 }
 
